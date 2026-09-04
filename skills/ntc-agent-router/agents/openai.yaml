@@ -1,0 +1,6 @@
+interface:
+  display_name: "NTC Agent Router"
+  short_description: "Agentes, modelos y esfuerzo según cada tarea"
+  default_prompt: "Usa $ntc-agent-router para resolver esta tarea con delegación y esfuerzo adaptados a su dificultad."
+policy:
+  allow_implicit_invocation: true
