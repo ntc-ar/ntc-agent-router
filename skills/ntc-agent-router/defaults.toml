@@ -1,0 +1,7 @@
+enabled = true
+
+[spark]
+enabled = true
+reserve_percent = 20
+on_limit = "fallback"
+when_unknown = "avoid"

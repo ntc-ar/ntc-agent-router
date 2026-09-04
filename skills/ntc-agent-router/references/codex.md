@@ -22,7 +22,8 @@ confirmation; a child's statement about its identity is not evidence.
 ## NTC preference: Spark for implementation
 
 Prefer `gpt-5.3-codex-spark` for substantial, well-scoped code implementation
-when the runtime offers it and it is adequate for the task. This preference
+when it passes the [configuration and quota checks](configuration.md), the
+runtime offers it, and it is adequate for the task. This preference
 helps use a separate allowance where the account exposes one. It is not an
 exclusive model assignment: user choices and actual capabilities take priority.
 The user can disable it with a request such as "no preference for Spark."
@@ -42,14 +43,11 @@ repair under the shared retry budget. Escalate if failures expose a reasoning
 gap or repeated review/rework eliminates the benefit; do not repeatedly regenerate
 the same code. High-consequence code still needs capable review before use.
 
-If native read-only usage telemetry is available, inspect the account's named
-model buckets once when quota affects the choice. Compare all reported windows;
-unknown values are unknown. Do not hardcode bucket IDs, assume every account has
-a separate allowance, or poll usage after every edit. A reported allowance does
-not guarantee immediate execution access. If Spark is unavailable or throttled,
-record that and use a suitable available route within the user's constraints.
-Do not auto-redeem resets or change billing. Parent coordination and corrections
-may still consume the main allowance; this is not unlimited or free execution.
+Apply the configured reserve to every Spark window, including both five-hour
+and weekly usage when exposed. Reaching either boundary is enough to stop new
+Spark assignments. Follow the configured fallback or stop behavior, including
+when quota is unknown. A separate allowance is not unlimited execution, and
+parent coordination and corrections may still consume the main allowance.
 
 Current model scope: [OpenAI model catalog](https://learn.chatgpt.com/docs/models).
 Plan and usage details: [OpenAI pricing](https://learn.chatgpt.com/docs/pricing).

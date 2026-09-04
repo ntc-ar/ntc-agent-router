@@ -60,6 +60,20 @@ The evaluation found ambiguities in effort inheritance and fallback to the
 parent. The policy was updated so these paths always respect exact user choices
 and limits, even when those constraints prevent completion.
 
+## Configurable quota checks
+
+An additional instruction-level evaluation covered ten quota/configuration
+scenarios: a low five-hour window, a low weekly window despite a five-hour reset,
+exact reserve equality, missing weekly telemetry, known exhaustion with unknown
+quota allowed, enable-switch precedence, per-key project/conversation overrides,
+partial edits after throttling, exact-model constraints, and invalid settings.
+
+The evaluated policy excludes Spark at or below the reserve in either window,
+honors fallback/stop settings, and does not treat unknown quota as unlimited.
+Packaged and local TOML settings were parsed, and local preferences were checked
+for preservation across installation. These checks do not enforce a platform
+quota or predict the consumption of an active agent.
+
 ## Validation limits
 
 Claude Code 2.1.195 was installed without active authentication. Files, locally

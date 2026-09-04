@@ -15,6 +15,11 @@ new evidence changes the task. This is a decision policy, not a billing limiter.
 
 ## Discover the actual controls
 
+Load [configuration](references/configuration.md) before routing or `status`.
+It defines enable switches, persistent overrides, and Spark quota safeguards.
+If the policy is disabled, report that when asked and stop applying its routing
+rules; do not change the host's ordinary behavior.
+
 Inspect the current tool schemas and available agent descriptions. Read only
 the relevant adapter: [Codex](references/codex.md) or
 [Claude Code](references/claude-code.md). In another host, use its exposed
@@ -101,7 +106,8 @@ Default preference is `auto`: balance completion quality, time and total work.
 together; `quality` permits deeper analysis or a useful independent review.
 None of these forces a model, an effort level, or a minimum number of children.
 Natural-language preferences and explicit limits override these defaults.
-Keep them in this conversation; do not write global settings.
+Keep them in this conversation unless the user asks to save router preferences
+through the configuration workflow. Do not change host-wide settings.
 
 Unless the user sets a total, allow at most four child attempts per user task.
 This is a configurable instruction budget, not a hard token or spending cap.

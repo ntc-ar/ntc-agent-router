@@ -74,6 +74,59 @@ Keep this model for all agents, with automatic effort up to high.
 Delegate the documentation and handle the main implementation.
 ```
 
+## Configuration and Spark limits
+
+The defaults enable the router and Spark, keep a **20% reserve in every Spark
+usage window**, and fall back to another suitable model or the parent when that
+reserve is reached. For an account with five-hour and weekly limits, either
+window can stop new Spark assignments. Fallback work may use the main allowance.
+
+You can change settings in the conversation:
+
+```text
+$ntc-agent-router Disable Spark for this conversation.
+$ntc-agent-router Enable Spark and keep a 30 percent reserve.
+$ntc-agent-router Stop the task if Spark reaches its reserve or limit.
+$ntc-agent-router off
+$ntc-agent-router on
+```
+
+To save preferences across sessions, ask the agent to save them or create
+`~/.config/ntc-agent-router/config.toml`. On Windows, `~` means `%USERPROFILE%`.
+For project settings, use `.ntc-agent-router.toml` at the repository root.
+
+```toml
+enabled = true
+
+[spark]
+enabled = true
+reserve_percent = 20
+on_limit = "fallback" # "fallback" or "stop"
+when_unknown = "avoid" # "avoid" or "allow"
+```
+
+Set `spark.enabled = false` to exclude Spark from new router assignments, or
+the top-level `enabled = false` to stop the router policy. These switches do not
+cancel active agents or change native host settings. Existing Spark work may
+still consume quota.
+
+Settings merge by key: packaged defaults, user file, project file, then current
+conversation instructions. Updates leave personal and project settings alone.
+`status` reports effective settings, their sources, quota, and the chosen action.
+
+When native usage telemetry is missing or incomplete, `when_unknown = "avoid"`
+keeps Spark out of automatic routing. Choose `"allow"` to permit an attempt
+without a known quota margin; known limits and reserves still apply.
+
+The router reads current quota before dispatching new waves of Spark work. If
+a child hits a limit mid-task, it checks partial changes before continuing or
+stopping. It does not repeatedly retry Spark or wait hours for a reset.
+The reserve is an advisory guard: simultaneous account activity and an active
+agent can consume more than the snapshot showed.
+
+See the [configuration reference](skills/ntc-agent-router/references/configuration.md)
+for exact precedence, validation, and fallback behavior.
+
 ## How it decides
 
 The router separates three decisions: which part of the work is independent,
@@ -93,11 +146,10 @@ decided per subtask. A first version may need corrections, but the final result
 must pass the same checks.
 
 This preference makes it possible to use a separate quota when the account
-offers one. The router checks native limits when they are exposed; it does not
-assume access or unlimited quota. Coordination and corrections may consume the
-main quota. If Spark is unavailable or rework stops being worthwhile, it
-chooses another route. You can ask for “no preference for Spark” or choose
-another model.
+offers one. It remains subject to the configured quota reserve and fallback
+policy. Coordination and corrections may consume the main quota. If rework
+stops being worthwhile, it chooses another allowed route. You can remove the
+Spark preference, disable Spark, or choose another model.
 
 The default mode is `auto`. `economy` favors fewer calls and reusing results;
 `balanced` balances quality and time; `quality` allows deeper work or adding a
