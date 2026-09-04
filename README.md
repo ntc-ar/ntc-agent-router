@@ -1,17 +1,17 @@
 # NTC Agent Router
 
-Skill de NeaTech para decidir cuándo delegar trabajo y qué modelo y esfuerzo
-usar en cada subtarea. Funciona con los agentes nativos de Codex y Claude Code.
+NeaTech skill for deciding when to delegate work and which model and effort to
+use for each subtask. It works with native agents in Codex and Claude Code.
 
-Una corrección pequeña se resuelve en el agente principal. Dos módulos
-independientes pueden trabajarse en paralelo. Un diagnóstico con evidencia
-contradictoria puede necesitar más razonamiento y una revisión. El router toma
-esas decisiones según la tarea y los controles disponibles en la sesión.
+A small fix is handled by the main agent. Two independent modules can be
+worked on in parallel. A diagnosis with contradictory evidence may need more
+reasoning and a review. The router makes these decisions based on the task and
+the controls available in the session.
 
-## Instalación
+## Installation
 
-Requiere Python 3.11 o posterior solo para instalar. La skill no necesita
-dependencias, claves API ni un proceso en segundo plano.
+Requires Python 3.11 or later only for installation. The skill needs no
+dependencies, API keys, or background process.
 
 ```sh
 git clone https://github.com/ntc-ar/ntc-agent-router.git
@@ -20,136 +20,138 @@ python install.py --target all --dry-run
 python install.py --target all
 ```
 
-En Windows también podés usar `py -3` en lugar de `python`. Para instalar en una
-sola herramienta, elegí `--target codex` o `--target claude`.
+On Windows, you can also use `py -3` instead of `python`. To install for a
+single tool, choose `--target codex` or `--target claude`.
 
-| Destino | Archivos |
+| Target | Files |
 | --- | --- |
 | Codex | `~/.codex/skills/ntc-agent-router/` |
-| Claude Code | `~/.claude/skills/ntc-agent-router/` y `~/.claude/agents/ntc-effort-*.md` |
+| Claude Code | `~/.claude/skills/ntc-agent-router/` and `~/.claude/agents/ntc-effort-*.md` |
 
-El instalador respeta `CODEX_HOME` y `CLAUDE_CONFIG_DIR`. `--home RUTA` permite
-probar con otro directorio de usuario e ignora esas variables. Si tu distribución
-de Codex descubre skills en `~/.agents/skills`, podés copiar allí la carpeta
-`skills/ntc-agent-router`; evitá mantener dos copias con el mismo nombre.
+The installer respects `CODEX_HOME` and `CLAUDE_CONFIG_DIR`. `--home PATH` lets
+you test with another user directory and ignores those variables. If your
+Codex distribution discovers skills in `~/.agents/skills`, you can copy the
+`skills/ntc-agent-router` folder there; avoid keeping two copies with the same
+name.
 
-Una reinstalación conserva una copia de los archivos reemplazados en
-`backups/ntc-agent-router/` dentro del directorio de configuración de cada
-herramienta. Los archivos idénticos se dejan como están. Si falla un reemplazo,
-el instalador intenta restaurar los destinos anteriores y conserva los backups.
-No modifica la configuración, autenticación ni instrucciones generales.
+A reinstallation preserves a copy of replaced files in
+`backups/ntc-agent-router/` inside each tool's configuration directory.
+Identical files are left as they are. If a replacement fails, the installer
+tries to restore the previous destinations and keeps the backups. It does not
+modify configuration, authentication, or general instructions.
 
-Abrí una sesión nueva después de instalar, especialmente en Claude Code, para
-cargar los perfiles. Codex puede detectar cambios automáticamente; si la skill
-no aparece en el selector, reiniciá la aplicación.
+Open a new session after installing, especially in Claude Code, to load the
+profiles. Codex may detect changes automatically; if the skill does not appear
+in the selector, restart the application.
 
-## Uso
+## Usage
 
-En Codex:
+In Codex:
 
 ```text
 $ntc-agent-router status
-$ntc-agent-router Revisá este proyecto y corregí los errores que encuentres.
-$ntc-agent-router economy Compará estos registros y devolvé las diferencias.
-$ntc-agent-router quality Investigá esta condición de carrera.
+$ntc-agent-router Review this project and fix any errors you find.
+$ntc-agent-router economy Compare these logs and return the differences.
+$ntc-agent-router quality Investigate this race condition.
 ```
 
-En Claude Code:
+In Claude Code:
 
 ```text
 /ntc-agent-router status
-/ntc-agent-router Revisá este proyecto y corregí los errores que encuentres.
+/ntc-agent-router Review this project and fix any errors you find.
 ```
 
-También puede activarse automáticamente cuando corresponde delegar. `status`
-informa qué puede controlar sin lanzar agentes de prueba. `off` deja de aplicar
-esta política en la conversación.
+It can also activate automatically when delegation is appropriate. `status`
+reports what it can control without launching test agents. `off` stops applying
+this policy in the conversation.
 
-Podés ajustar el criterio en lenguaje natural:
+You can adjust the criteria in natural language:
 
 ```text
-Usá como máximo dos agentes, priorizá tiempo y elegí el esfuerzo en cada caso.
-Mantené este modelo para todos los agentes, con esfuerzo automático hasta high.
-Delegá la documentación y encargate de la implementación principal.
+Use at most two agents, prioritize time, and choose the effort for each case.
+Keep this model for all agents, with automatic effort up to high.
+Delegate the documentation and handle the main implementation.
 ```
 
-## Cómo decide
+## How it decides
 
-El router separa tres decisiones: qué parte del trabajo es independiente, qué
-capacidad de modelo necesita y cuánto razonamiento conviene dedicarle.
-Considera incertidumbre, dependencias, consecuencias de un error y facilidad de
-verificación. El tamaño de un archivo no determina por sí solo la dificultad.
+The router separates three decisions: which part of the work is independent,
+what model capability it needs, and how much reasoning is appropriate. It
+considers uncertainty, dependencies, the consequences of an error, and ease of
+verification. File size alone does not determine difficulty.
 
-Los roles se asignan según el trabajo. No hay una lista fija de modelos ni una
-asociación permanente entre modelo y esfuerzo. Los agentes pueden implementar
-cambios autorizados con archivos asignados, además de investigar o revisar.
+Roles are assigned according to the work. There is no fixed list of models or
+permanent association between model and effort. Agents can implement authorized
+changes to assigned files, as well as investigate or review.
 
-En Codex hay una preferencia deliberada por **GPT-5.3-Codex-Spark para el grueso
-de la implementación**, cuando está disponible y el trabajo puede acotarse.
-El principal define interfaces, integra y revisa; Spark produce código por
-partes coherentes, con pruebas indicadas en el encargo. Su esfuerzo también se
-decide por subtarea. Una primera versión puede necesitar correcciones, pero el
-resultado final debe pasar las mismas verificaciones.
+In Codex, there is a deliberate preference for **GPT-5.3-Codex-Spark for most
+of the implementation**, when available and when the work can be scoped. The
+main agent defines interfaces, integrates, and reviews; Spark produces code in
+coherent parts, with tests specified in the assignment. Its effort is also
+decided per subtask. A first version may need corrections, but the final result
+must pass the same checks.
 
-Esta preferencia permite aprovechar una cuota separada cuando la cuenta la
-ofrece. El router consulta los límites nativos si están expuestos; no presupone
-acceso ni cuota ilimitada. La coordinación y las correcciones pueden consumir
-el cupo principal. Si Spark no está disponible o el retrabajo deja de compensar,
-elige otra ruta. Podés pedir «sin preferencia por Spark» o elegir otro modelo.
+This preference makes it possible to use a separate quota when the account
+offers one. The router checks native limits when they are exposed; it does not
+assume access or unlimited quota. Coordination and corrections may consume the
+main quota. If Spark is unavailable or rework stops being worthwhile, it
+chooses another route. You can ask for “no preference for Spark” or choose
+another model.
 
-El modo predeterminado es `auto`. `economy` favorece menos llamadas y reutilizar
-resultados; `balanced` equilibra calidad y tiempo; `quality` permite profundizar
-o sumar una revisión útil. Ningún modo obliga a crear agentes ni a usar siempre
-el modelo más grande.
+The default mode is `auto`. `economy` favors fewer calls and reusing results;
+`balanced` balances quality and time; `quality` allows deeper work or adding a
+useful review. No mode requires creating agents or always using the largest
+model.
 
-Sin un límite indicado por el usuario, la política permite cuatro intentos de
-agente por tarea, incluidos reintentos y continuaciones. La concurrencia se
-decide con las subtareas listas y los lugares libres del entorno. Estos límites
-son instrucciones; no son un tope de facturación impuesto por el programa.
+Without a user-specified limit, the policy allows four agent attempts per task,
+including retries and continuations. Concurrency is decided from the ready
+subtasks and the environment's available slots. These limits are instructions;
+they are not a billing cap imposed by the program.
 
-## Diferencias entre herramientas
+## Differences between tools
 
-**Codex:** usa los parámetros de modelo y esfuerzo expuestos por su herramienta
-de agentes. Si el entorno requiere contexto separado para cambiar esos valores,
-envía un encargo autocontenido. No instala perfiles con modelos fijos.
+**Codex:** uses the model and effort parameters exposed by its agent tool. If
+the environment requires separate context to change those values, it sends a
+self-contained assignment. It does not install profiles with fixed models.
 
-**Claude Code:** puede seleccionar modelo por llamada. Para las versiones que
-configuran esfuerzo mediante frontmatter, incluye cinco perfiles de esfuerzo:
-`low`, `medium`, `high`, `xhigh` y `max`. El router elige el perfil al delegar y
-selecciona el modelo por separado. Solo usa combinaciones compatibles con el
-modelo y la versión en ejecución. Los perfiles heredan herramientas y permisos.
+**Claude Code:** can select a model per call. For versions that configure effort
+through frontmatter, it includes five effort profiles: `low`, `medium`, `high`,
+`xhigh`, and `max`. The router chooses the profile when delegating and selects
+the model separately. It uses only combinations compatible with the model and
+the running version. Profiles inherit tools and permissions.
 
-El modelo principal y su esfuerzo permanecen como los configuraste. Las
-preferencias o variables del entorno pueden prevalecer sobre una solicitud del
-router; la skill distingue lo solicitado de lo confirmado por el runtime.
+The main model and its effort remain as you configured them. Preferences or
+environment variables may override a router request; the skill distinguishes
+what was requested from what the runtime confirmed.
 
-**ChatGPT web:** el archivo de skill puede orientar decisiones si la interfaz
-permite cargarlo. No instala agentes locales ni habilita controles que esa
-interfaz no exponga. La versión local se verifica por separado.
+**ChatGPT web:** the skill file can guide decisions if the interface allows it
+to be loaded. It does not install local agents or enable controls that the
+interface does not expose. The local version is verified separately.
 
-## Verificación
+## Verification
 
 ```sh
 python -m unittest discover -s tests -v
 ```
 
-Las pruebas comprueban instalación, reinstalación, backups y recuperación ante
-errores en directorios temporales. No llaman a modelos. Los casos de decisión y
-el alcance de las pruebas realizadas están en [VALIDATION.md](VALIDATION.md).
+The tests check installation, reinstallation, backups, and recovery from
+errors in temporary directories. They do not call models. The decision cases
+and scope of the tests performed are documented in [VALIDATION.md](VALIDATION.md).
 
-El router es una política ejecutada por el modelo. Las pruebas de archivos no
-demuestran que siempre vaya a elegir bien, y no hay un porcentaje de ahorro
-prometido. Para medirlo hay que comparar tareas equivalentes e incluir contexto,
-coordinación, verificaciones y reintentos.
+The router is a policy executed by the model. File tests do not demonstrate
+that it will always choose correctly, and no savings percentage is promised.
+To measure it, compare equivalent tasks and include context, coordination,
+verification, and retries.
 
-## Archivos
+## Files
 
-- `skills/ntc-agent-router/`: política común y adaptadores por herramienta.
-- `claude-agents/`: perfiles nativos que permiten elegir esfuerzo en Claude Code.
-- `install.py`: instalador para Windows, Linux y macOS.
-- `tests/`: pruebas locales sin servicios externos.
+- `skills/ntc-agent-router/`: common policy and tool adapters.
+- `claude-agents/`: native profiles that allow choosing effort in Claude Code.
+- `install.py`: installer for Windows, Linux, and macOS.
+- `tests/`: local tests without external services.
 
-Las referencias de cada adaptador enlazan la documentación oficial. Los
-parámetros disponibles en la sesión tienen prioridad frente a cualquier ejemplo.
+Each adapter's references link to the official documentation. Parameters
+available in the session take priority over any example.
 
 NeaTech · NTC

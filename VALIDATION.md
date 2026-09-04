@@ -1,71 +1,71 @@
-# Validación
+# Validation
 
-Revisión inicial: 4 de septiembre de 2026.
+Initial review: September 4, 2026.
 
-## Evaluación del diseño
+## Design review
 
-El kit original servía como política de delegación. Sus comprobaciones de
-capacidad y su distinción entre modelo solicitado y confirmado eran útiles.
-La selección quedaba limitada por cuatro combinaciones fijas de modelo y
-esfuerzo, agentes exclusivamente de lectura y soporte solo para OpenAI.
+The original kit was usable as a delegation policy. Its capability checks and
+distinction between requested and confirmed models were useful. Routing was
+limited by four fixed model/effort combinations, read-only agents, and support
+for OpenAI only.
 
-Esta versión conserva la comprobación de capacidades y cambia la selección por
-una política por subtarea. Los agentes pueden implementar cambios con alcance
-definido. Codex tiene una preferencia por Spark para implementación verificable;
-Claude Code usa perfiles de esfuerzo que permiten elegir el modelo por separado.
-La preferencia por Spark puede desactivarse y no obliga a usar un modelo ausente.
+This version keeps capability checks and selects settings per subtask. Agents
+can implement changes within a defined scope. Codex favors Spark for verifiable
+implementation work; Claude Code uses effort profiles that allow independent
+model selection. The Spark preference can be disabled and does not require an
+unavailable model.
 
-## Comprobaciones realizadas
+## Completed checks
 
-- Validación de frontmatter y metadatos de la skill.
-- Validación YAML de los cinco perfiles Claude y de sus niveles de esfuerzo.
-- Trece pruebas del instalador con Python 3.14 en Windows, sin errores ni pruebas
-  omitidas: instalación, reinstalación, conservación de archivos ajenos,
-  idempotencia, backups, fallos de copia y reemplazo, y rechazo de enlaces.
-- Instalación real en ambas herramientas y segunda ejecución sin cambios.
-- Descubrimiento nativo en Codex CLI 0.153.1 mediante `skills/list`: una skill
-  de usuario habilitada, sin duplicados.
-- Delegación nativa solicitando Luna con esfuerzo low para extraer los cinco
-  perfiles; el resultado coincide con los archivos.
-- Implementación nativa solicitando GPT-5.3-Codex-Spark con esfuerzo medium:
-  workflow de CI y ajuste de los tests para directorios temporales de macOS.
-  Cambios revisados y trece pruebas superadas.
+- Validated skill frontmatter and metadata.
+- Validated YAML and effort levels in the five Claude profiles.
+- Passed thirteen installer tests with Python 3.14 on Windows, with no failures
+  or skipped tests: installation, reinstallation, preservation of unrelated
+  files, idempotence, backups, copy and replacement failures, and link rejection.
+- Installed into both tools and verified that a second run made no changes.
+- Confirmed native discovery in Codex CLI 0.153.1 through `skills/list`: one
+  enabled user skill, with no duplicates.
+- Ran native delegation requesting Luna with low effort to extract the five
+  profiles; the result matched the files.
+- Ran native implementation requesting GPT-5.3-Codex-Spark with medium effort:
+  the CI workflow and a test adjustment for macOS temporary directories.
+  Reviewed the changes and passed all thirteen tests.
 
-Las dos delegaciones comprobaron ejecución y resultado. El control usado
-aceptó modelo y esfuerzo solicitados, pero no devolvió metadatos que permitan
-afirmar de forma independiente cuáles fueron los valores efectivos.
+The two delegated runs checked execution and results. The control accepted the
+requested model and effort but did not return metadata that independently
+confirmed the effective values.
 
-El workflow de GitHub ejecuta las pruebas con Python 3.11 en Windows, Linux y
-macOS. El resultado de cada revisión se puede consultar en Actions.
+The GitHub workflow runs the tests with Python 3.11 on Windows, Linux, and macOS.
+Results for each revision are available in Actions.
 
-## Casos de decisión
+## Routing scenarios
 
-Se realizó una evaluación de instrucciones con escenarios simulados, además
-de las comprobaciones de ejecución anteriores. No es un benchmark.
+The instructions were evaluated against simulated scenarios in addition to the
+execution checks above. This was not a benchmark.
 
-| Situación | Comportamiento revisado |
+| Situation | Reviewed behavior |
 | --- | --- |
-| Reemplazo exacto de una palabra | Resolver en el principal, sin crear agentes |
-| Dos módulos independientes | Delegar uno, asignar archivos y avanzar con el otro |
-| Modelo que ofrece low/high pero no medium | Elegir un nivel admitido que cubra la dificultad |
-| Evidencia esencial sin acceso | Identificar el bloqueo; más esfuerzo no da permisos |
-| Modelo y esfuerzo elegidos exactamente, combinación no soportada | Informar el bloqueo sin sustituirlos |
-| Dos intentos permitidos, uno completado y uno fallido | Terminar localmente dentro de las restricciones |
-| Claude sin esfuerzo por llamada | Elegir un perfil compatible, sin inventar parámetros |
-| Modelo impuesto por el entorno | Diferenciar solicitud y configuración efectiva |
-| Spark disponible para implementación acotada | Priorizarlo y revisar el código resultante |
-| Spark agotado o con errores reiterados | Corregir la causa o elegir otra ruta dentro del presupuesto |
+| Exact one-word replacement | Complete in the parent without spawning agents |
+| Two independent modules | Delegate one with file ownership and work on the other |
+| Model supports low/high but not medium | Select a supported level adequate for the task |
+| Essential evidence is inaccessible | Identify the blocker; more effort does not grant access |
+| Exact model and effort requested, combination unsupported | Report the blocker without substituting settings |
+| Two attempts allowed, one completed and one failed | Finish locally within the user's constraints |
+| Claude has no per-call effort control | Select a compatible profile without inventing parameters |
+| Environment forces the model | Distinguish the request from effective configuration |
+| Spark available for bounded implementation | Prefer it and review the resulting code |
+| Spark quota exhausted or repeated errors | Fix the cause or choose another route within the budget |
 
-La evaluación detectó ambigüedades al heredar esfuerzo o volver al principal.
-Se ajustó la política para que esos caminos respeten siempre las elecciones
-exactas y los límites del usuario, incluso cuando no permiten terminar la tarea.
+The evaluation found ambiguities in effort inheritance and fallback to the
+parent. The policy was updated so these paths always respect exact user choices
+and limits, even when those constraints prevent completion.
 
-## Límites de esta validación
+## Validation limits
 
-Claude Code 2.1.195 estaba instalado sin autenticación activa. Se verificaron
-los archivos, los campos aceptados localmente y la instalación; queda pendiente
-ejecutar los perfiles en una sesión autenticada de Claude Code.
+Claude Code 2.1.195 was installed without active authentication. Files, locally
+accepted fields, and installation were checked; running the profiles in an
+authenticated Claude Code session remains pending.
 
-La detección de skills no prueba por sí sola la selección automática en toda
-conversación. Tampoco se midió ahorro de dinero, tokens ni cuota. La calidad del
-routing debe seguir evaluándose con trabajo real y verificaciones de resultado.
+Skill discovery alone does not establish automatic selection in every
+conversation. Money, token, and quota savings were not measured. Routing
+quality should continue to be assessed through real work and result checks.
