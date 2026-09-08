@@ -115,7 +115,49 @@ Reinstalled in Codex and Claude Code, verified both copies against the source,
 confirmed an identical dry run made no changes, and checked that the personal
 configuration file retained its SHA-256 hash.
 
-## Validation limits
+## Optional OpenRouter connector — September 8, 2026
+
+The optional stdio MCP server was registered in local Codex and initialized with
+the official MCP Python client. Tool discovery, task submission and status
+retrieval were exercised. The key was loaded from Windows Credential Manager;
+no key was written to the repository or Codex MCP configuration.
+
+Thirty-one local tests ran on Windows with Python 3.14: thirty passed, including
+installer and mocked provider/worker checks. One symlink-creation test was skipped
+because the host did not permit creating that test link. Checks cover unknown,
+nonfinite and positive prices, free-only request constraints, response validation,
+secret handling, context boundaries, shared concurrency, cancellation, 429
+cooldown, artifact creation, and catalog refresh preservation. `pip check` and
+skill validation passed.
+
+Live checks distinguished endpoint reachability from generation success:
+
+| Requested route | Result |
+| --- | --- |
+| Cohere North Mini Code free, provider-default effort | Empty completion; rejected |
+| Poolside Laguna XS 2.1 free, low effort | HTTP 404; no completion |
+| Cohere North Mini Code free, low effort through a temporary MCP client | Client shutdown interrupted the worker; not a successful generation |
+| NVIDIA Nemotron 3.5 Lightning free, low effort | HTTP 404: no provider matching the data policy |
+| Cohere North Mini Code free, reasoning requested as none | Complete Python draft; effective model `cohere/north-mini-code:free`, provider Cohere, reported cost USD 0 |
+
+The successful call reported 34 prompt tokens and 128 completion tokens. Its
+sorting/deduplication function was inspected before execution, passed its three
+assertions, and passed three independent checks for iterator input, Unicode and
+empty strings, and preservation of the input list. The provider did not expose
+an independent effective-effort measurement. This is a small end-to-end smoke
+test, not evidence of broad coding quality or token savings.
+
+The public refresh found 20 zero-priced concrete text-capable model records.
+Presence in that catalog does not guarantee provider availability under the
+configured data policy or suitability for coding. Recent local outcomes are
+included with the candidate list to inform subsequent choices. Account credits
+were unchanged after the checks; no paid inference was needed.
+
+Worker subprocesses have a wall-clock deadline. Host process-group shutdown can
+still interrupt them; orphaned jobs are reported as interrupted rather than
+successful. The worker produces drafts only, not autonomous repository edits.
+
+## Other validation limits
 
 Claude Code 2.1.195 was installed without active authentication. Files, locally
 accepted fields, and installation were checked; running the profiles in an

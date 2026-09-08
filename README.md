@@ -66,6 +66,17 @@ It can also activate automatically when delegation is appropriate. `status`
 reports what it can control without launching test agents. `off` stops applying
 this policy in the conversation.
 
+## Optional OpenRouter workers
+
+The separate [OpenRouter MCP connector](external_workers/README.md) adds bounded
+external code-generation and analysis jobs to Codex. It selects concrete models
+from the current zero-priced catalog, stores credentials in the OS credential
+store, and saves results as drafts for local review. Native agents remain
+available. This connector is opt-in and is not installed by `install.py`.
+
+A public-catalog refresh command supports scheduled discovery without inference.
+Every generation rechecks model prices independently of the catalog snapshot.
+
 You can adjust the criteria in natural language:
 
 ```text
