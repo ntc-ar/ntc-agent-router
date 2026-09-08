@@ -142,12 +142,18 @@ def prompt_with_context(task, workspace, files, limit):
     return prompt
 
 
+def model_weight(config, model):
+    weights = config["model_weights"]
+    return weights.get(model, weights.get("*", 50))
+
+
 def models(workspace=""):
     config = settings()
     policy = project_policy(workspace, config)
     weights = config["model_weights"]
-    candidates = [m | {"weight": weights.get(m["id"], 50),
-                       "weight_source": "configured" if m["id"] in weights else "default",
+    candidates = [m | {"weight": model_weight(config, m["id"]),
+                       "weight_source": ("configured" if m["id"] in weights else
+                                         "configured_default" if "*" in weights else "default"),
                        "data_collection": policy["data_collection"]}
                   for m in client.free_models()]
     with database() as db:
@@ -172,7 +178,7 @@ def start_task(task, model, workspace="", context_files=None, max_tokens=None, r
     config = settings()
     if not config["enabled"]:
         raise ValueError("External workers are disabled in the local configuration.")
-    if config["model_weights"].get(model, 50) == 0:
+    if model_weight(config, model) == 0:
         raise ValueError("This model is disabled by its local weight.")
     policy = project_policy(workspace, config)
     cap = max_tokens if max_tokens is not None else config["max_tokens"]
@@ -256,6 +262,8 @@ def run_task(task_id):
         if not config["enabled"]:
             raise ValueError("External workers were disabled before dispatch.")
         spec = json.loads((folder / "request.json").read_text(encoding="utf-8"))
+        if model_weight(config, spec["model"]) == 0:
+            raise client.OpenRouterError("model_disabled", "This model is disabled by its local weight.")
         policy = project_policy(spec.pop("workspace", ""), config)
         if spec.get("data_collection", "deny") != "allow":
             policy["data_collection"] = "deny"

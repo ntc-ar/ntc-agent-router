@@ -55,6 +55,22 @@ Weights default to 50; zero disables that model. New model IDs are discovered
 without editing code. Match task requirements to the returned descriptions and
 capabilities rather than choosing by weight alone.
 
+To permit only specific models, set the default weight to zero and list the
+allowed exact IDs in the same table:
+
+```toml
+[model_weights]
+"*" = 0
+"nvidia/nemotron-3-ultra-550b-a55b:free" = 100
+```
+
+The `"*"` entry is the default for every unlisted ID, including future catalog
+additions. Exact entries override it. The connector checks weights both when
+queuing work and immediately before sending a request; queued jobs cannot bypass
+a newly tightened restriction. Existing MCP sessions need reconnection to show
+the new default weight in their catalog, but fresh worker processes enforce it
+before dispatch.
+
 Among equally weighted free models, the router favors the strongest evidenced
 capability for the task, accounting for reliability, latency and likely rework.
 The native preference for smaller models does not apply to this free candidate

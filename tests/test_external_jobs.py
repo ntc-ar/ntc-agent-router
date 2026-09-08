@@ -118,6 +118,38 @@ class JobsTest(unittest.TestCase):
         self.assertEqual((models[1]["weight"], models[1]["weight_source"]), (50, "default"))
         self.assertIsNone(models[1]["last_local_result"])
 
+    def test_default_zero_allows_only_explicit_models(self):
+        self.config.write_text('enabled = true\n[model_weights]\n"*" = 0\n'
+                               '"vendor/code:free" = 100\n', encoding="utf-8")
+        records = [{"id": "vendor/code:free"}, {"id": "vendor/new:free"}]
+        with patch.object(jobs.client, "free_models", return_value=records):
+            models = jobs.models()
+        self.assertEqual([(m["weight"], m["weight_source"]) for m in models],
+                         [(100, "configured"), (0, "configured_default")])
+        with self.assertRaisesRegex(ValueError, "disabled"):
+            jobs.start_task("Write a function", "vendor/new:free")
+        jobs.load_key.assert_not_called()
+        jobs.subprocess.Popen.assert_not_called()
+        task_id = self.start()
+        response = {"content": "def add(a, b): return a + b"}
+        with patch.object(jobs.client, "generate", return_value=response) as generate:
+            jobs.run_task(task_id)
+        generate.assert_called_once()
+        self.assertEqual(jobs.read_task(task_id)["status"], "succeeded")
+
+    def test_queued_model_is_rechecked_before_external_dispatch(self):
+        task_id = self.start()
+        self.config.write_text('enabled = true\n[model_weights]\n"*" = 0\n'
+                               '"vendor/other:free" = 100\n', encoding="utf-8")
+        jobs.load_key.reset_mock()
+        with patch.object(jobs.client, "generate") as generate:
+            jobs.run_task(task_id)
+        generate.assert_not_called()
+        jobs.load_key.assert_not_called()
+        result = jobs.read_task(task_id)
+        self.assertEqual((result["status"], result["code"]), ("failed", "model_disabled"))
+        self.assertFalse((jobs.task_dir(task_id) / "request.json").exists())
+
     def allow_project(self, root):
         self.config.write_text('enabled = true\n[project_data_collection]\n'
                                + json.dumps(root.as_posix()) + ' = "allow"\n', encoding="utf-8")
