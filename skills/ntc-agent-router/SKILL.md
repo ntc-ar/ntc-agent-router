@@ -35,6 +35,8 @@ When the user has enabled an external worker connector, also read
 [external workers](references/external-workers.md). Route through its exposed
 tools as a separate candidate pool; external jobs share the same attempt budget.
 The optional connector is not installed or enabled by the skill itself.
+Within a zero-priced external pool, apply that adapter's capability-first
+selection instead of the native preference for smaller models.
 
 `status` reports those controls, active preferences and limits without spawning
 agents, changing files or calling models to test access. `off` stops this policy

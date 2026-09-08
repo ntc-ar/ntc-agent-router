@@ -21,7 +21,7 @@ CONFIG = Path.home() / ".config/ntc-openrouter/config.toml"
 STATE = Path.home() / ".local/share/ntc-openrouter"
 DEFAULTS = dict(enabled=False, max_parallel=2, requests_per_minute=10,
                 daily_request_limit=50, max_tokens=8192, max_context_chars=60000,
-                model_weights={})
+                model_weights={}, project_data_collection={})
 SECRET = re.compile(r"sk-[A-Za-z0-9_-]{12,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|"
                     r"(?i:Bearer\s+[A-Za-z0-9_.-]{16,})")
 
@@ -44,7 +44,37 @@ def settings():
         for k, v in weights.items()
     ):
         raise ValueError("model_weights must map model IDs to integer priorities from 0 to 100.")
+    policies = result["project_data_collection"]
+    if not isinstance(policies, dict) or any(
+        not isinstance(k, str) or not Path(k).is_absolute() or ".." in Path(k).parts
+        or v not in ("allow", "deny") for k, v in policies.items()
+    ):
+        raise ValueError("project_data_collection must map absolute project paths to allow or deny.")
     return result
+
+
+def workspace_root(workspace):
+    root = Path(workspace)
+    if not root.is_absolute() or not root.is_dir():
+        raise ValueError("Workspace must be an existing absolute directory.")
+    for part in (root, *root.parents):
+        info = part.lstat()
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise ValueError("Symlink and junction workspaces are not supported.")
+    return root.resolve()
+
+
+def project_policy(workspace="", config=None):
+    config = settings() if config is None else config
+    if not workspace:
+        return {"workspace": "", "project_root": None, "data_collection": "deny"}
+    root = workspace_root(workspace)
+    matches = [(Path(path), policy) for path, policy in config["project_data_collection"].items()
+               if root.is_relative_to(Path(path))]
+    # A more specific project rule wins; deny wins duplicate/case-equivalent paths.
+    match = max(matches, key=lambda m: (len(m[0].parts), m[1] == "deny"), default=None)
+    return {"workspace": str(root), "project_root": str(match[0]) if match else None,
+            "data_collection": match[1] if match else "deny"}
 
 
 @contextmanager
@@ -82,10 +112,7 @@ def prompt_with_context(task, workspace, files, limit):
         raise ValueError("At most 20 explicit context files are allowed.")
     chunks = [task]
     if files:
-        root = Path(workspace or "")
-        if not root.is_absolute() or not root.is_dir():
-            raise ValueError("Context requires an existing absolute workspace directory.")
-        root = root.resolve()
+        root = workspace_root(workspace or "")
         for name in files:
             relative = Path(name)
             if relative.is_absolute() or not relative.parts or any(p in ("..", ".git", ".env", ".ssh") for p in relative.parts):
@@ -115,17 +142,26 @@ def prompt_with_context(task, workspace, files, limit):
     return prompt
 
 
-def models():
-    weights = settings()["model_weights"]
-    candidates = [m | {"weight": weights.get(m["id"], 50)} for m in client.free_models()]
+def models(workspace=""):
+    config = settings()
+    policy = project_policy(workspace, config)
+    weights = config["model_weights"]
+    candidates = [m | {"weight": weights.get(m["id"], 50),
+                       "weight_source": "configured" if m["id"] in weights else "default",
+                       "data_collection": policy["data_collection"]}
+                  for m in client.free_models()]
     with database() as db:
         rows = db.execute("SELECT model,status,created,updated,metadata FROM jobs "
                           "WHERE status IN ('succeeded','failed') AND created>? ORDER BY created DESC",
                           (time.time() - 86400,)).fetchall()
     recent = {}
     for row in rows:
+        metadata = json.loads(row["metadata"])
+        if metadata.get("data_collection", "deny") != policy["data_collection"]:
+            continue
         recent.setdefault(row["model"], {"status": row["status"],
-                          "code": json.loads(row["metadata"]).get("code"),
+                          "code": metadata.get("code"),
+                          "routing_failure": metadata.get("routing_failure"),
                           "elapsed_seconds": round(row["updated"] - row["created"], 1)})
     for model in candidates:
         model["last_local_result"] = recent.get(model["id"])
@@ -138,10 +174,11 @@ def start_task(task, model, workspace="", context_files=None, max_tokens=None, r
         raise ValueError("External workers are disabled in the local configuration.")
     if config["model_weights"].get(model, 50) == 0:
         raise ValueError("This model is disabled by its local weight.")
+    policy = project_policy(workspace, config)
     cap = max_tokens if max_tokens is not None else config["max_tokens"]
     if type(cap) is not int or not 1 <= cap <= config["max_tokens"]:
         raise ValueError("Output cap exceeds the configured limit.")
-    prompt = prompt_with_context(task, workspace, context_files or [], config["max_context_chars"])
+    prompt = prompt_with_context(task, policy["workspace"], context_files or [], config["max_context_chars"])
     load_key()  # Fail before creating a job when setup is incomplete.
     task_id = uuid.uuid4().hex
     folder = task_dir(task_id)
@@ -158,9 +195,11 @@ def start_task(task, model, workspace="", context_files=None, max_tokens=None, r
         if active >= config["max_parallel"] or recent >= config["requests_per_minute"] or daily >= config["daily_request_limit"]:
             raise ValueError("A local worker concurrency or request limit has been reached.")
         folder.mkdir(parents=True, mode=0o700)
-        spec = dict(model=model, prompt=prompt, max_tokens=cap, reasoning_effort=reasoning_effort)
+        spec = dict(model=model, prompt=prompt, max_tokens=cap, reasoning_effort=reasoning_effort,
+                    workspace=policy["workspace"], data_collection=policy["data_collection"])
         (folder / "request.json").write_text(json.dumps(spec, ensure_ascii=False), encoding="utf-8")
-        db.execute("INSERT INTO jobs VALUES (?,?,?,?,?,?)", (task_id, now, now, "queued", model, "{}"))
+        db.execute("INSERT INTO jobs VALUES (?,?,?,?,?,?)",
+                   (task_id, now, now, "queued", model, json.dumps(policy)))
     try:
         flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
         subprocess.Popen([sys.executable, "-m", "external_workers.cli", "worker", task_id],
@@ -172,7 +211,7 @@ def start_task(task, model, workspace="", context_files=None, max_tokens=None, r
             db.execute("UPDATE jobs SET status='failed',updated=?,metadata=? WHERE id=?",
                        (time.time(), '{"error":"Worker process could not start."}', task_id))
         raise ValueError("Worker process could not start.") from None
-    return dict(task_id=task_id, status="queued", requested_model=model)
+    return dict(task_id=task_id, status="queued", requested_model=model, **policy)
 
 
 def read_task(task_id, include_output=False):
@@ -213,24 +252,30 @@ def run_task(task_id):
         return
     metadata = {}
     try:
-        if not settings()["enabled"]:
+        config = settings()
+        if not config["enabled"]:
             raise ValueError("External workers were disabled before dispatch.")
         spec = json.loads((folder / "request.json").read_text(encoding="utf-8"))
+        policy = project_policy(spec.pop("workspace", ""), config)
+        if spec.get("data_collection", "deny") != "allow":
+            policy["data_collection"] = "deny"
+        spec["data_collection"] = policy["data_collection"]
+        metadata = policy
         response = client.generate(load_key(), **spec)
         content = response.pop("content")
-        metadata = response
+        metadata.update(response)
         outcome = "succeeded"
     except client.OpenRouterError as error:
         outcome = "failed"
-        metadata = {"error": str(error), "code": error.code, "retry_after": error.retry_after,
-                    **error.details}
+        metadata.update({"error": str(error), "code": error.code, "retry_after": error.retry_after,
+                         **error.details})
         if str(error.code) in {"429", "http_429", "rate_limit", "rate_limited"}:
             wait = error.retry_after if isinstance(error.retry_after, (int, float)) else 60
             with database() as db:
                 db.execute("INSERT OR REPLACE INTO control VALUES ('cooldown',?)", (time.time() + max(60, wait),))
     except Exception:
         outcome = "failed"
-        metadata = {"error": "Local worker error; no request contents or credentials are included."}
+        metadata["error"] = "Local worker error; no request contents or credentials are included."
     with database() as db:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute("SELECT status FROM jobs WHERE id=?", (task_id,)).fetchone()
@@ -262,8 +307,9 @@ def run_worker(task_id):
         timer.cancel()
 
 
-def status():
+def status(workspace=""):
     config = settings()
+    policy = project_policy(workspace, config)
     with database() as db:
         expire_stale(db)
         rows = db.execute("SELECT id,status,model FROM jobs ORDER BY created DESC LIMIT 20").fetchall()
@@ -273,7 +319,7 @@ def status():
         account = client.account_status(load_key())
     except (ValueError, client.OpenRouterError):
         account = {"status": "unavailable"}
-    return dict(config=config, account=account, local_attempts_last_24h=count,
+    return dict(config=config, project_policy=policy, account=account, local_attempts_last_24h=count,
                 cooldown_until=cooldown[0] if cooldown else None,
                 recent_tasks=[dict(row) for row in rows],
                 note="Local counts cover this integration only; remaining OpenRouter requests are not exposed.")

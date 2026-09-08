@@ -231,6 +231,11 @@ def _check_key(key: str) -> None:
         raise OpenRouterError("invalid_key", "An OpenRouter API key is required.")
 
 
+def _check_data_collection(data_collection: str) -> None:
+    if not isinstance(data_collection, str) or data_collection not in {"allow", "deny"}:
+        raise OpenRouterError("invalid_data_collection", "data_collection must be 'allow' or 'deny'.")
+
+
 def _validate_prompt(prompt: str, max_tokens: int, record: dict, key: str) -> None:
     if not isinstance(prompt, str) or not prompt.strip():
         raise OpenRouterError("invalid_prompt", "Prompt must contain text.")
@@ -248,8 +253,9 @@ def _validate_prompt(prompt: str, max_tokens: int, record: dict, key: str) -> No
 
 
 def generate(key: str, model: str, prompt: str, max_tokens: int = 8192,
-             reasoning_effort: str | None = None) -> dict:
+             reasoning_effort: str | None = None, data_collection: str = "deny") -> dict:
     """Generate exactly one completion after fresh free-model verification."""
+    _check_data_collection(data_collection)
     _check_key(key)
     if (not isinstance(model, str) or not model or model.startswith("openrouter/")
             or (":" in model and not model.endswith(":free"))):
@@ -275,7 +281,7 @@ def generate(key: str, model: str, prompt: str, max_tokens: int = 8192,
             "max_price": {"prompt": 0, "completion": 0, "request": 0, "image": 0},
             "allow_fallbacks": False,
             "require_parameters": True,
-            "data_collection": "deny",
+            "data_collection": data_collection,
         },
     }
     if reasoning_effort is not None:
@@ -297,7 +303,8 @@ def generate(key: str, model: str, prompt: str, max_tokens: int = 8192,
     if not isinstance(provider, str) or not provider:
         raise OpenRouterError("invalid_response", "OpenRouter returned an unexpected response.")
     receipt = {"actual_model": actual_model, "provider": provider.replace(key, "[REDACTED]"),
-               "usage": _sanitize_usage(usage), "finish_reason": finish_reason}
+               "usage": _sanitize_usage(usage), "finish_reason": finish_reason,
+               "data_collection": data_collection}
     if isinstance(content, str) and key in content:
         raise OpenRouterError("sensitive_response", "Provider response contained a credential.")
     if not isinstance(content, str) or not content.strip():
@@ -305,10 +312,11 @@ def generate(key: str, model: str, prompt: str, max_tokens: int = 8192,
     if finish_reason != "stop":
         raise OpenRouterError("partial_response", "OpenRouter returned a truncated or incomplete completion.", details=receipt)
     if not _zero(cost):
-        raise OpenRouterError("nonzero_cost", "OpenRouter reported a nonzero or unknown cost.")
+        raise OpenRouterError("nonzero_cost", "OpenRouter reported a nonzero or unknown cost.", details=receipt)
     safe_usage = _sanitize_usage(usage)
     return {"content": content, "actual_model": actual_model, "provider": provider,
-            "usage": safe_usage, "finish_reason": finish_reason, "reported_cost_usd": 0.0}
+            "usage": safe_usage, "finish_reason": finish_reason, "reported_cost_usd": 0.0,
+            "data_collection": data_collection}
 
 
 def _sanitize_usage(usage: object) -> dict:

@@ -157,6 +157,29 @@ Worker subprocesses have a wall-clock deadline. Host process-group shutdown can
 still interrupt them; orphaned jobs are reported as interrupted rather than
 successful. The worker produces drafts only, not autonomous repository edits.
 
+## Free-model selection and project privacy — September 8, 2026
+
+Free workers now use task-capability evidence to break equal preference weights,
+without inheriting the native preference for smaller models. An independent
+instruction-level check covered substantive code versus a toy-test success,
+privacy-ineligible stronger candidates, explicit user weights, and native light
+delegation. This was a policy check, not a model benchmark or a measured ranking.
+
+Project data-collection permissions are local absolute-directory rules, with a
+deny default and most-specific matching. The repository cannot opt itself in.
+Tests cover unlisted projects, omitted workspaces, sibling and nested paths,
+invalid settings, context escapes, revocation before dispatch, prevention of
+queued permission upgrades, and separating recent outcomes by data policy.
+Client tests retain zero-price enforcement for both allow and deny requests.
+
+On Windows, 38 tests ran: 37 passed and one symlink-creation check was skipped.
+Skill validation passed. A real MCP session checked workspace-aware tool schemas,
+allow/deny status for different projects, and the live free catalog. One Inkling
+free job with medium requested effort and project-authorized data collection
+returned HTTP 403. It produced no draft; the reason beyond access rejection was
+not established. No successful Inkling generation or coding superiority is
+claimed. The data policy and rejection are visible in the job receipt.
+
 ## Other validation limits
 
 Claude Code 2.1.195 was installed without active authentication. Files, locally

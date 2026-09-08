@@ -14,7 +14,7 @@ class JobsTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.config = self.root / "config.toml"
         self.config.write_text("enabled = true\nmax_parallel = 1\n", encoding="utf-8")
         for name, value in (("STATE", self.root / "state"), ("CONFIG", self.config)):
@@ -101,6 +101,87 @@ class JobsTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 jobs.refresh_models()
         self.assertEqual(json.loads((jobs.STATE / "free-models.json").read_text())["models"], [record])
+
+    def test_model_preferences_and_routing_failure_are_visible(self):
+        self.config.write_text('enabled = true\n[model_weights]\n"vendor/code:free" = 90\n', encoding="utf-8")
+        task_id = self.start()
+        error = OpenRouterError("http_404", "HTTP 404", details={
+            "routing_failure": "no_provider_matching_data_policy"})
+        with patch.object(jobs.client, "generate", side_effect=error):
+            jobs.run_task(task_id)
+        records = [{"id": "vendor/code:free"}, {"id": "vendor/new:free"}]
+        with patch.object(jobs.client, "free_models", return_value=records):
+            models = jobs.models()
+        self.assertEqual((models[0]["weight"], models[0]["weight_source"]), (90, "configured"))
+        self.assertEqual(models[0]["last_local_result"]["routing_failure"],
+                         "no_provider_matching_data_policy")
+        self.assertEqual((models[1]["weight"], models[1]["weight_source"]), (50, "default"))
+        self.assertIsNone(models[1]["last_local_result"])
+
+    def allow_project(self, root):
+        self.config.write_text('enabled = true\n[project_data_collection]\n'
+                               + json.dumps(root.as_posix()) + ' = "allow"\n', encoding="utf-8")
+
+    def test_project_policy_defaults_and_directory_boundaries(self):
+        project = self.root / "game"
+        child = project / "src"
+        private = project / "private"
+        sibling = self.root / "game-client"
+        for path in (child, private, sibling):
+            path.mkdir(parents=True)
+        self.allow_project(project)
+        with self.config.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(private.as_posix()) + ' = "deny"\n')
+        self.assertEqual(jobs.project_policy()["data_collection"], "deny")
+        self.assertEqual(jobs.project_policy(str(child))["data_collection"], "allow")
+        self.assertEqual(jobs.project_policy(str(private))["data_collection"], "deny")
+        self.assertEqual(jobs.project_policy(str(sibling))["data_collection"], "deny")
+        self.assertEqual(jobs.project_policy(str(project / ".." / "game-client"))["data_collection"], "deny")
+        for workspace in ("relative", str(self.root / "missing")):
+            with self.assertRaises(ValueError):
+                jobs.project_policy(workspace)
+
+    def test_only_local_config_can_authorize_data_collection(self):
+        (self.root / ".ntc-openrouter.toml").write_text('data_collection = "allow"', encoding="utf-8")
+        self.assertEqual(jobs.project_policy(str(self.root))["data_collection"], "deny")
+        for setting in ('project_data_collection = true',
+                        '[project_data_collection]\n"relative" = "allow"',
+                        '[project_data_collection]\n' + json.dumps(self.root.as_posix()) + ' = "invalid"'):
+            self.config.write_text(setting, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                jobs.settings()
+
+    def test_project_permission_applies_and_cannot_cross_context_boundary(self):
+        project = self.root / "game"
+        project.mkdir()
+        self.allow_project(project)
+        (self.root / "private.py").write_text("private code", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            jobs.start_task("Review", "vendor/code:free", str(project), ["../private.py"])
+        task_id = jobs.start_task("Write a function", "vendor/code:free", str(project))["task_id"]
+        error = OpenRouterError("http_404", "HTTP 404", details={
+            "routing_failure": "no_provider_matching_data_policy"})
+        with patch.object(jobs.client, "generate", side_effect=error) as generate:
+            jobs.run_task(task_id)
+        self.assertEqual(generate.call_args.kwargs["data_collection"], "allow")
+        self.assertNotIn("workspace", generate.call_args.kwargs)
+        self.assertEqual(jobs.read_task(task_id)["data_collection"], "allow")
+        with patch.object(jobs.client, "free_models", return_value=[{"id": "vendor/code:free"}]):
+            self.assertIsNone(jobs.models()[0]["last_local_result"])
+            self.assertEqual(jobs.models(str(project))[0]["last_local_result"]["code"], "http_404")
+
+    def test_queued_project_permission_can_only_become_stricter(self):
+        self.allow_project(self.root)
+        task_id = jobs.start_task("Write a function", "vendor/code:free", str(self.root))["task_id"]
+        self.config.write_text("enabled = true\n", encoding="utf-8")
+        with patch.object(jobs.client, "generate", side_effect=OpenRouterError("http_404", "HTTP 404")) as generate:
+            jobs.run_task(task_id)
+        self.assertEqual(generate.call_args.kwargs["data_collection"], "deny")
+        task_id = jobs.start_task("Write a function", "vendor/code:free", str(self.root))["task_id"]
+        self.allow_project(self.root)
+        with patch.object(jobs.client, "generate", side_effect=OpenRouterError("http_404", "HTTP 404")) as generate:
+            jobs.run_task(task_id)
+        self.assertEqual(generate.call_args.kwargs["data_collection"], "deny")
 
 
 if __name__ == "__main__":

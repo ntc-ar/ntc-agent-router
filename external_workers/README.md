@@ -43,12 +43,47 @@ max_context_chars = 60000
 [model_weights]
 # Optional exact model IDs returned by the live catalog; higher is preferred.
 # "vendor/model:free" = 90
+
+[project_data_collection]
+# Optional user-authorized absolute project directories. Default everywhere: deny.
+# "D:/Projects/MyGame" = "allow"
+# "D:/Projects/MyGame/private" = "deny"
 ```
 
 Absent configuration means disabled. Unknown keys or invalid values are rejected.
 Weights default to 50; zero disables that model. New model IDs are discovered
 without editing code. Match task requirements to the returned descriptions and
 capabilities rather than choosing by weight alone.
+
+Among equally weighted free models, the router favors the strongest evidenced
+capability for the task, accounting for reliability, latency and likely rework.
+The native preference for smaller models does not apply to this free candidate
+pool. List order is not a quality ranking, and parameter count or popularity does
+not establish coding quality. Smaller models remain useful when the task or a
+measured latency advantage justifies them. The roster comes from the live catalog;
+there is no built-in model leaderboard. Weights remain optional user priorities.
+
+Some free endpoints require logging or model-improvement use of prompts and
+outputs. They may be unavailable under the connector's `data_collection: deny`
+policy even when listed in the public catalog. The caller should explain that
+exclusion rather than quietly treating the remaining models as the best overall.
+
+Project exceptions belong only in this local user configuration, not a repository
+file. Pass the actual absolute workspace to `openrouter_status`,
+`openrouter_models`, and `openrouter_start_task`, even for a text-only task.
+The most specific matching directory rule applies to that directory and its
+descendants. Unlisted paths and omitted workspaces use `deny`; similarly named
+sibling directories do not inherit permission. Symlink/junction workspaces are
+rejected. Separate worktrees outside a configured root need their own explicit
+authorization. A queued job rechecks its project policy before dispatch and can
+only become more restrictive. Already transmitted requests cannot be recalled.
+
+`allow` permits providers that may store inputs/outputs and train on them. It
+does not authorize sending another project's content. Explicit context files
+remain confined to the supplied workspace and secret checks remain active. The
+connector cannot establish ownership or confidentiality of free-form prompt
+text; the caller must classify it and must not select a different workspace to
+borrow its permission. The selected data policy is included in the job receipt.
 
 Register the absolute server path:
 
@@ -71,8 +106,8 @@ fallback is permitted.
 
 | Tool | Purpose |
 | --- | --- |
-| `openrouter_status` | Local enable state, safe account credit fields, cooldown and recent tasks |
-| `openrouter_models` | Live zero-priced text models, capabilities, effort levels when advertised, weights |
+| `openrouter_status` | Local enable state, project data policy, safe account credit fields, cooldown and recent tasks |
+| `openrouter_models` | Live zero-priced text models, capabilities, effort levels, weights, and recent outcomes under the selected data policy |
 | `openrouter_start_task` | Submit one bounded generation with an explicit model and optional context files |
 | `openrouter_task` | Status, effective model/provider, reported usage/cost and output path |
 | `openrouter_cancel_task` | Cooperative cancellation; already sent requests may still consume quota |
@@ -105,7 +140,8 @@ It rejects routing aliases such as `openrouter/free` and `openrouter/auto`.
 This also supports concrete zero-priced models without a `:free` suffix.
 
 Requests set zero provider price ceilings, disable provider fallback and plugins,
-require parameter support, and require `data_collection: deny`. No model lists,
+require parameter support, and default to `data_collection: deny` with explicit
+local project exceptions. No model lists,
 paid fallback, billing changes, automatic purchases, or automatic retries exist.
 Each successful result must contain text, finish normally, report zero cost, and
 identify the requested model or its verified catalog canonical identity.
@@ -129,9 +165,9 @@ whether external generation is worthwhile.
 
 ```powershell
 & $workerPython -m external_workers.cli refresh-models
-& $workerPython -m external_workers.cli models
-& $workerPython -m external_workers.cli status
-& $workerPython -m external_workers.cli start --model vendor/model:free --task-file task.txt
+& $workerPython -m external_workers.cli models --workspace "$PWD"
+& $workerPython -m external_workers.cli status --workspace "$PWD"
+& $workerPython -m external_workers.cli start --model vendor/model:free --task-file task.txt --workspace "$PWD"
 & $workerPython -m external_workers.cli result TASK_ID
 ```
 

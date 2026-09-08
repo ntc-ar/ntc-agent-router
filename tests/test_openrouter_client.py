@@ -46,7 +46,7 @@ class OpenRouterClientTests(unittest.TestCase):
         with patch.object(client, "_request_json", return_value={"data": [free_variant]}):
             self.assertEqual(client.free_models()[0]["id"], "acme/free-text:free")
 
-    def test_generate_refreshes_catalog_and_sends_locked_zero_cost_payload(self):
+    def test_generate_defaults_to_deny_and_sends_locked_zero_cost_payload(self):
         response = {"model": "acme/free-text", "provider": "acme", "choices": [{"finish_reason": "stop", "message": {"content": "done"}}], "usage": {"cost": "0", "prompt_tokens": 2}}
         with patch.object(client, "_request_json", side_effect=[{"data": [MODEL]}, response]) as request:
             result = client.generate("key", "acme/free-text", "safe request", 32, "low")
@@ -54,9 +54,29 @@ class OpenRouterClientTests(unittest.TestCase):
         payload = request.call_args_list[1].kwargs["payload"]
         self.assertEqual(payload["provider"]["max_price"], {"prompt": 0, "completion": 0, "request": 0, "image": 0})
         self.assertFalse(payload["provider"]["allow_fallbacks"])
+        self.assertEqual(payload["provider"]["data_collection"], "deny")
         self.assertEqual(payload["plugins"], [])
         self.assertEqual(payload["reasoning"], {"effort": "low"})
         self.assertEqual(result["usage"], {"cost": 0.0, "prompt_tokens": 2})
+        self.assertEqual(result["data_collection"], "deny")
+
+    def test_generate_allows_explicit_data_collection_without_relaxing_price_restrictions(self):
+        response = {"model": "acme/free-text", "provider": "acme", "choices": [{"finish_reason": "stop", "message": {"content": "done"}}], "usage": {"cost": 0}}
+        with patch.object(client, "_request_json", side_effect=[{"data": [MODEL]}, response]) as request:
+            result = client.generate("key", "acme/free-text", "safe request", 32, data_collection="allow")
+        provider = request.call_args_list[1].kwargs["payload"]["provider"]
+        self.assertEqual(provider["data_collection"], "allow")
+        self.assertEqual(provider["max_price"], {"prompt": 0, "completion": 0, "request": 0, "image": 0})
+        self.assertFalse(provider["allow_fallbacks"])
+        self.assertEqual(request.call_args_list[1].kwargs["payload"]["plugins"], [])
+        self.assertEqual(result["data_collection"], "allow")
+
+    def test_generate_rejects_invalid_data_collection_before_network(self):
+        with patch.object(client, "_request_json") as request:
+            with self.assertRaises(client.OpenRouterError) as caught:
+                client.generate("key", "acme/free-text", "safe request", 32, data_collection="maybe")
+        self.assertEqual(caught.exception.code, "invalid_data_collection")
+        request.assert_not_called()
 
     def test_generate_rejects_partial_and_nonzero_results(self):
         partial = {"model": "acme/free-text", "provider": "acme", "choices": [{"finish_reason": "length", "message": {"content": "part"}}], "usage": {"cost": 0}}
@@ -73,6 +93,7 @@ class OpenRouterClientTests(unittest.TestCase):
             with self.assertRaises(client.OpenRouterError) as caught:
                 client.generate("key", "acme/free-text", "safe request", 32)
         self.assertEqual(caught.exception.code, "nonzero_cost")
+        self.assertEqual(caught.exception.details["data_collection"], "deny")
 
     def test_http_error_is_safe_and_has_bounded_retry_after(self):
         error = urllib.error.HTTPError("https://openrouter.ai/api/v1/models", 429, "bad", {"Retry-After": "999999"}, None)

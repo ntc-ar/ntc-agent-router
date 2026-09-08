@@ -15,7 +15,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     for name in ("credential", "status", "models", "refresh-models"):
-        commands.add_parser(name)
+        command = commands.add_parser(name)
+        if name in ("status", "models"):
+            command.add_argument("--workspace", default="")
     for name in ("worker", "result", "cancel"):
         sub = commands.add_parser(name)
         sub.add_argument("task_id")
@@ -43,7 +45,8 @@ def main():
             result = jobs.cancel_task(args.task_id)
         else:
             result = {"status": jobs.status, "models": jobs.models,
-                      "refresh-models": jobs.refresh_models}[args.command]()
+                      "refresh-models": jobs.refresh_models}[args.command](
+                          **({"workspace": args.workspace} if args.command in ("status", "models") else {}))
         print(json.dumps(result, ensure_ascii=True, indent=2))
         return 0
     except (ValueError, OSError, OpenRouterError) as error:
