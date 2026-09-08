@@ -74,7 +74,20 @@ Keep this model for all agents, with automatic effort up to high.
 Delegate the documentation and handle the main implementation.
 ```
 
-## Configuration and Spark limits
+## Configuration, model weights and Spark limits
+
+The default mode is **economy**. It starts clear work on a suitable light model,
+considers a balanced model for everyday implementation, and requires a concrete
+reason to use Astra or another flagship. Model and effort are selected separately;
+an Astra/Ultra parent does not make its children Astra/Ultra.
+
+The bundled Codex priorities are Spark **100**, Luna **90**, Terra **80**, Sol
+**50**, GPT-5.5 **40**, and Astra **10**. Claude aliases start at Haiku **90**,
+Sonnet **80**, and Opus **10**. These are configurable selection weights, not
+prices, traffic percentages, or promised token savings. Higher wins among
+available, adequate candidates; it cannot bypass capability or quota checks.
+Spark's priority applies to implementation work by default. Unlisted exposed
+models remain candidates with weight 50, using their actual capability metadata.
 
 The defaults enable the router and Spark, keep a **20% reserve in every Spark
 usage window**, and fall back to another suitable model or the parent when that
@@ -97,6 +110,12 @@ For project settings, use `.ntc-agent-router.toml` at the repository root.
 
 ```toml
 enabled = true
+mode = "economy" # "balanced" (or "auto") and "quality" are also available
+
+# Optional overrides; omitted model weights keep their packaged/user values.
+[model_weights]
+"gpt-5.6-terra" = 95
+"gpt-6-astra" = 5
 
 [spark]
 enabled = true
@@ -112,7 +131,11 @@ still consume quota.
 
 Settings merge by key: packaged defaults, user file, project file, then current
 conversation instructions. Updates leave personal and project settings alone.
-`status` reports effective settings, their sources, quota, and the chosen action.
+`status` reports the mode, effective weights, available controls, their sources,
+quota, and the chosen action. Weight zero excludes a model from automatic
+selection; an explicit request for that model can override the weight, but does
+not silently waive Spark's quota safeguards. A custom weight only applies to an
+exact model ID or accepted alias. It does not make a picker-only model spawnable.
 
 When native usage telemetry is missing or incomplete, `when_unknown = "avoid"`
 keeps Spark out of automatic routing. Choose `"allow"` to permit an attempt
@@ -134,9 +157,11 @@ what model capability it needs, and how much reasoning is appropriate. It
 considers uncertainty, dependencies, the consequences of an error, and ease of
 verification. File size alone does not determine difficulty.
 
-Roles are assigned according to the work. There is no fixed list of models or
-permanent association between model and effort. Agents can implement authorized
-changes to assigned files, as well as investigate or review.
+Roles are assigned according to the work. The preference table is editable and
+does not limit the runtime model roster or tie models to effort levels. Agents
+can implement authorized changes to assigned files, as well as investigate or
+review. "Reviewer" and "security" are not automatic reasons to use a flagship:
+the router separates routine evidence gathering from consequential judgment.
 
 In Codex, there is a deliberate preference for **GPT-5.3-Codex-Spark for most
 of the implementation**, when available and when the work can be scoped. The
@@ -151,10 +176,18 @@ policy. Coordination and corrections may consume the main quota. If rework
 stops being worthwhile, it chooses another allowed route. You can remove the
 Spark preference, disable Spark, or choose another model.
 
-The default mode is `auto`. `economy` favors fewer calls and reusing results;
-`balanced` balances quality and time; `quality` allows deeper work or adding a
-useful review. No mode requires creating agents or always using the largest
-model.
+`economy` favors adequate lighter models, compact context and targeted checks.
+`balanced` (also `auto`) gives more weight to avoiding likely rework and delay;
+`quality` allows deeper work or a useful review when it improves the result.
+All modes respect weights among suitable candidates. None requires creating
+agents or always using the largest model. More effort is not a substitute for
+missing evidence, permissions or tools.
+
+Each delegation wave states the assignment, model, effort and reason. A departure
+from a higher-weight suitable candidate needs an explanation, as does escalation
+to a flagship or maximum effort. Confirmed settings and fallbacks are reported
+when the runtime exposes them. This leaves evidence in the conversation without
+adding a background process or collecting telemetry.
 
 Without a user-specified limit, the policy allows four agent attempts per task,
 including retries and continuations. Concurrency is decided from the ready

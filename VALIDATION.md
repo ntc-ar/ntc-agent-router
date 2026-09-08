@@ -74,6 +74,47 @@ Packaged and local TOML settings were parsed, and local preferences were checked
 for preservation across installation. These checks do not enforce a platform
 quota or predict the consumption of an active agent.
 
+## Weighted routing evaluation — September 8, 2026
+
+Real usage showed that the original "smallest adequate model" guidance did not
+consistently prevent flagship selection. It also left ordinary agents open to
+inheriting a flagship parent and maximum effort. The revised policy adds an
+economy default, configurable selection weights, explicit model/effort dispatch
+and a concrete reason for escalation. No host defaults or billing controls change.
+
+An independent instruction-level evaluation applied the revised package to
+fifteen scenarios without performing the simulated tasks or spawning children:
+
+| Scenario | Observed decision |
+| --- | --- |
+| Direct schema extraction with Astra/Ultra parent | Luna/low with explicit settings |
+| One-file parser fix with interacting quoting rules and fixtures | Terra/medium |
+| One README typo | Work in the parent |
+| Explicit Astra/high request with Astra weight zero | Honor the explicit request |
+| Spark would win, weekly reserve reached, stop configured | Stop before replacement work |
+| Spark disabled with stop configured | Ordinary non-Spark routing, Terra/medium |
+| Project overrides one user model weight | Merge per key; preserve other user weights |
+| Terra fails a cross-module concurrency acceptance check | One targeted escalation to Sol/high |
+| Adequate Terra outranks exhausted Spark with stop configured | Terra; Spark's stop rule does not trigger |
+| Only Astra exposed for requested extraction child | Astra/low; disclose the lack of alternatives |
+| Claude extraction with model selector and effort profiles | Haiku with the low profile and explicit model |
+| Boolean used as a model weight | Reject configuration before routing |
+| Unlisted light model exposed with suitable capability metadata | Use its neutral weight; select it over Astra |
+| No model/effort controls for a requested independent child | Disclose inherited, unverified settings |
+| All adequate exposed candidates have weight zero | Report the constraint without an excluded-parent fallback |
+
+These are simulated routing decisions, not a task-quality or token benchmark.
+The real policy diagnosis and evaluation runs requested Luna/medium and
+Terra/medium respectively. Local child-session metadata confirmed both models
+and effort levels. No flagship child was used for this validation.
+
+The skill validator and all thirteen installer tests passed on Windows.
+Packaged weights and existing user settings parsed as TOML; the effective mode
+was economy and the existing 20% Spark reserve/fallback policy was preserved.
+Reinstalled in Codex and Claude Code, verified both copies against the source,
+confirmed an identical dry run made no changes, and checked that the personal
+configuration file retained its SHA-256 hash.
+
 ## Validation limits
 
 Claude Code 2.1.195 was installed without active authentication. Files, locally

@@ -24,6 +24,20 @@ Do not manufacture fields or rewrite profiles during routing.
 Use ordinary subagent dispatch: forks may ignore model overrides.
 See [subagents](https://code.claude.com/docs/en/sub-agents#choose-a-model).
 
+## Apply efficiency preferences
+
+Apply the shared mode and weights after checking the model's capabilities.
+With exposed, documented Haiku/Sonnet/Opus aliases, consider Haiku for clear,
+bounded work, Sonnet for ordinary implementation and reasoning, and Opus for
+work needing deeper judgment. These are starting points, not fixed roles or
+effort levels. Use runtime descriptions for other models. A configured alias
+weight does not apply to an unrelated or guessed full model ID.
+
+Pass the selected model even when using an `ntc-effort-*` profile: its
+`model: inherit` is a fallback, not an economy setting. Do not copy an Opus
+parent or maximum effort into routine work by omission. Explain unavailable or
+forced controls; a missing model selector does not authorize a CLI/API workaround.
+
 ## Check overrides and results
 
 Inspect relevant non-secret model restrictions and, when present,

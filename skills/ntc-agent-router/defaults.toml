@@ -1,4 +1,18 @@
 enabled = true
+mode = "economy"
+
+# Selection priorities among adequate, available candidates. Not prices or shares.
+# Exact runtime model IDs (or accepted Claude aliases); unlisted models get 50.
+[model_weights]
+"gpt-5.3-codex-spark" = 100
+"gpt-5.6-luna" = 90
+"gpt-5.6-terra" = 80
+"gpt-5.6-sol" = 50
+"gpt-5.5" = 40
+"gpt-6-astra" = 10
+haiku = 90
+sonnet = 80
+opus = 10
 
 [spark]
 enabled = true

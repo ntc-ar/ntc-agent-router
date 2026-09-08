@@ -1,10 +1,10 @@
 ---
 name: ntc-agent-router
 description: >-
-  Choose whether to delegate independent work, then select available agents,
-  models and reasoning effort for each subtask. Use for adaptive multi-agent
-  work, delegation planning, or requests to balance quality, time and usage
-  in Codex or Claude Code. A trivial task does not need an agent.
+  Choose whether to delegate independent work, then select available models
+  and reasoning effort using configurable efficiency preferences. Use before
+  spawning or reassigning subagents, for delegation planning, or to balance
+  quality, time and usage in Codex or Claude Code. A trivial task needs no agent.
 ---
 
 # NTC Agent Router
@@ -16,7 +16,7 @@ new evidence changes the task. This is a decision policy, not a billing limiter.
 ## Discover the actual controls
 
 Load [configuration](references/configuration.md) before routing or `status`.
-It defines enable switches, persistent overrides, and Spark quota safeguards.
+It defines model weights, routing mode, enable switches and Spark quota safeguards.
 If the policy is disabled, report that when asked and stop applying its routing
 rules; do not change the host's ordinary behavior.
 
@@ -59,13 +59,33 @@ evidence, changes, checks and blockers; they do not redelegate by default.
 
 ## Select model and effort independently
 
-Honor explicit user choices and the host's allowlist. Among available models,
-choose adequate capability using runtime descriptions, documented capabilities
-or observed task results. Do not infer price from a model's name or generation.
-Apply the relevant adapter's preferences among suitable candidates; these are
-overridable priorities, not eligibility requirements or fixed role assignments.
-If relative cost is unknown, say so when relevant; use capability and latency
-evidence without claiming a cheapest route. Keep the parent model unchanged.
+Honor explicit user choices and the host's allowlist. Grade the subtask before
+choosing a model: required tools/context, ambiguity, interacting constraints and
+an acceptance check. The parent model, its effort and the project's importance
+do not establish the child's requirements. Keep the parent settings unchanged.
+
+Use the adapter's capability guidance and [model weights](references/configuration.md#model-weights)
+to compare suitable candidates. Start with the highest-weight adequate model,
+not the strongest available one. For clear, verifiable work, a suitable light
+model is the first attempt; hypothetical mistakes alone do not rule it out.
+For ordinary implementation with several interacting steps, consider a balanced
+model before a flagship. Use a stronger model directly when the task requires
+it; do not burn a token trial on a candidate already known to be inadequate.
+
+Astra or another flagship needs a concrete reason: unresolved interacting
+constraints beyond the lighter candidates, consequential judgment that cannot
+be separated from the work, a demonstrated capability failure, or no suitable
+alternative. A role called "reviewer", "security", "planner" or "coder" is not
+that reason. Split routine extraction or implementation from difficult judgment
+where useful. Explicit user model requests take precedence, including a request
+to use a flagship. Weights express preferences, not prices or measured savings.
+
+Set both model and effort through the actual controls when available. Do not
+inherit an Astra/Ultra parent merely by omitting fields or forking its complete
+history. Prefer a sufficient brief in fresh context. Reuse an existing agent
+when its relevant context saves more work than a new route would; state that
+tradeoff if it bypasses the preferred model. If selection is unavailable, report
+inherited/unverified settings and avoid unnecessary extra agents.
 
 Assess uncertainty, interacting constraints, consequence of error and how well
 the result can be checked. Input length and job title alone do not decide depth.
@@ -101,13 +121,14 @@ model size or a self-reported confidence score is not validation.
 
 ## Adapt within a finite budget
 
-Default preference is `auto`: balance completion quality, time and total work.
-`economy` favors reuse and fewer calls; `balanced` treats quality and latency
-together; `quality` permits deeper analysis or a useful independent review.
-None of these forces a model, an effort level, or a minimum number of children.
-Natural-language preferences and explicit limits override these defaults.
-Keep them in this conversation unless the user asks to save router preferences
-through the configuration workflow. Do not change host-wide settings.
+Use the configured mode, `economy` by default. It favors the least total work
+likely to pass the acceptance check: adequate lighter models, compact context,
+reused evidence and targeted verification. `balanced` (also `auto`) gives more
+weight to avoiding likely rework and delay; `quality` permits deeper analysis or
+a useful independent review when it materially improves the result. All modes
+apply model weights among adequate candidates. None means "always Astra", a
+fixed effort, or a minimum number of children. Conversation preferences override
+configuration; persist them only when requested. Do not change host settings.
 
 Unless the user sets a total, allow at most four child attempts per user task.
 This is a configurable instruction budget, not a hard token or spending cap.
@@ -128,8 +149,14 @@ Avoid retrying models already found unavailable in this conversation.
 
 ## Report what happened
 
-For meaningful delegation, state the assignment and chosen model/effort with a
-brief task-level reason. Verify critical findings without duplicating all work.
+For each delegation wave, state the assignment, chosen model/effort and a short
+task-level reason. When choosing a lower-weight model, say what ruled out the
+preferred candidate; include the concrete escalation reason for a flagship or
+maximum effort. For example: "Schema inventory -> Luna/low: direct extraction;
+parser fix -> Terra/medium: interacting branches with fixture checks." Report
+which model/effort actually ran when exposed, plus any fallback and its cause.
+Keep this in the conversation; do not add telemetry files or services by default.
+Verify critical findings without duplicating all work.
 Report requested settings separately from configured or runtime-confirmed
 settings. Mark the effective model or effort unverified when the runtime does
 not expose it. Writing a model name or "think harder" in a prompt is not a
