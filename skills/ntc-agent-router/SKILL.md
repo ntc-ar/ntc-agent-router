@@ -31,13 +31,6 @@ runtime exposes them. A picker or cached model list does not prove spawn access.
 Use runtime metadata first, relevant non-secret configuration second. Do not
 read credentials or probe every model. Refresh after a capability failure.
 
-When the user has enabled an external worker connector, also read
-[external workers](references/external-workers.md). Route through its exposed
-tools as a separate candidate pool; external jobs share the same attempt budget.
-The optional connector is not installed or enabled by the skill itself.
-Within a zero-priced external pool, apply that adapter's capability-first
-selection instead of the native preference for smaller models.
-
 `status` reports those controls, active preferences and limits without spawning
 agents, changing files or calling models to test access. `off` stops this policy
 for the conversation; it does not disable the host's agent features.
@@ -171,7 +164,6 @@ configuration change. Do not claim savings without a measured comparable run.
 
 Keep the user's permissions, authentication and billing method. A missing
 control is not a reason to add an API bridge, rewrite profiles during a task,
-or change the parent session's settings. Explicitly enabled external connectors
-follow their own documented controls and restrictions. With no model/effort control, delegate
-only for independence and report the inherited or unverified settings. With
-no applicable native or enabled external worker tool, complete the work in the parent.
+or change the parent session's settings. With no model/effort control, delegate
+only for independence and report the inherited or unverified settings. With no
+applicable native agent tool, complete the work in the parent.
