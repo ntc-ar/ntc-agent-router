@@ -74,32 +74,24 @@ Keep this model for all agents, with automatic effort up to high.
 Delegate the documentation and handle the main implementation.
 ```
 
-## Configuration, model weights and Spark limits
+## Configuration and model weights
 
 The default mode is **economy**. It starts clear work on a suitable light model,
 considers a balanced model for everyday implementation, and requires a concrete
 reason to use Astra or another flagship. Model and effort are selected separately;
 an Astra/Ultra parent does not make its children Astra/Ultra.
 
-The bundled Codex priorities are Spark **100**, Luna **90**, Terra **80**, Sol
-**50**, GPT-5.5 **40**, and Astra **10**. Claude aliases start at Haiku **90**,
-Sonnet **80**, and Opus **10**. These are configurable selection weights, not
-prices, traffic percentages, or promised token savings. Higher wins among
-available, adequate candidates; it cannot bypass capability or quota checks.
-Spark's priority applies to implementation work by default. Unlisted exposed
+The bundled Codex priorities are Luna **90**, Terra **80**, Sol **50**, GPT-5.5
+**40**, and Astra **10**. Claude aliases start at Haiku **90**, Sonnet **80**,
+and Opus **10**. These are configurable selection weights, not prices, traffic
+percentages, or promised token savings. Higher wins among available, adequate
+candidates; capability requirements still take priority. Unlisted exposed
 models remain candidates with weight 50, using their actual capability metadata.
-
-The defaults enable the router and Spark, keep a **20% reserve in every Spark
-usage window**, and fall back to another suitable model or the parent when that
-reserve is reached. For an account with five-hour and weekly limits, either
-window can stop new Spark assignments. Fallback work may use the main allowance.
 
 You can change settings in the conversation:
 
 ```text
-$ntc-agent-router Disable Spark for this conversation.
-$ntc-agent-router Enable Spark and keep a 30 percent reserve.
-$ntc-agent-router Stop the task if Spark reaches its reserve or limit.
+$ntc-agent-router Prefer Luna for straightforward implementation work.
 $ntc-agent-router off
 $ntc-agent-router on
 ```
@@ -116,39 +108,21 @@ mode = "economy" # "balanced" (or "auto") and "quality" are also available
 [model_weights]
 "gpt-5.6-terra" = 95
 "gpt-6-astra" = 5
-
-[spark]
-enabled = true
-reserve_percent = 20
-on_limit = "fallback" # "fallback" or "stop"
-when_unknown = "avoid" # "avoid" or "allow"
 ```
 
-Set `spark.enabled = false` to exclude Spark from new router assignments, or
-the top-level `enabled = false` to stop the router policy. These switches do not
-cancel active agents or change native host settings. Existing Spark work may
-still consume quota.
+Set the top-level `enabled = false` to stop the router policy. This switch does
+not cancel active agents or change native host settings.
 
 Settings merge by key: packaged defaults, user file, project file, then current
 conversation instructions. Updates leave personal and project settings alone.
 `status` reports the mode, effective weights, available controls, their sources,
-quota, and the chosen action. Weight zero excludes a model from automatic
-selection; an explicit request for that model can override the weight, but does
-not silently waive Spark's quota safeguards. A custom weight only applies to an
-exact model ID or accepted alias. It does not make a picker-only model spawnable.
-
-When native usage telemetry is missing or incomplete, `when_unknown = "avoid"`
-keeps Spark out of automatic routing. Choose `"allow"` to permit an attempt
-without a known quota margin; known limits and reserves still apply.
-
-The router reads current quota before dispatching new waves of Spark work. If
-a child hits a limit mid-task, it checks partial changes before continuing or
-stopping. It does not repeatedly retry Spark or wait hours for a reset.
-The reserve is an advisory guard: simultaneous account activity and an active
-agent can consume more than the snapshot showed.
+and the chosen action. Weight zero excludes a model from automatic selection;
+an explicit request for that model can override the weight. A custom weight only
+applies to an exact model ID or accepted alias. It does not make a picker-only
+model spawnable.
 
 See the [configuration reference](skills/ntc-agent-router/references/configuration.md)
-for exact precedence, validation, and fallback behavior.
+for exact precedence, validation, and selection behavior.
 
 ## How it decides
 
@@ -163,19 +137,6 @@ can implement authorized changes to assigned files, as well as investigate or
 review. "Reviewer" and "security" are not automatic reasons to use a flagship:
 the router separates routine evidence gathering from consequential judgment.
 
-In Codex, there is a deliberate preference for **GPT-5.3-Codex-Spark for most
-of the implementation**, when available and when the work can be scoped. The
-main agent defines interfaces, integrates, and reviews; Spark produces code in
-coherent parts, with tests specified in the assignment. Its effort is also
-decided per subtask. A first version may need corrections, but the final result
-must pass the same checks.
-
-This preference makes it possible to use a separate quota when the account
-offers one. It remains subject to the configured quota reserve and fallback
-policy. Coordination and corrections may consume the main quota. If rework
-stops being worthwhile, it chooses another allowed route. You can remove the
-Spark preference, disable Spark, or choose another model.
-
 `economy` favors adequate lighter models, compact context and targeted checks.
 `balanced` (also `auto`) gives more weight to avoiding likely rework and delay;
 `quality` allows deeper work or a useful review when it improves the result.
@@ -189,10 +150,10 @@ to a flagship or maximum effort. Confirmed settings and fallbacks are reported
 when the runtime exposes them. This leaves evidence in the conversation without
 adding a background process or collecting telemetry.
 
-Without a user-specified limit, the policy allows four agent attempts per task,
-including retries and continuations. Concurrency is decided from the ready
-subtasks and the environment's available slots. These limits are instructions;
-they are not a billing cap imposed by the program.
+The router has no default numerical cap on agents or attempts. It continues in
+waves while each child has a distinct useful deliverable whose expected value
+exceeds the coordination, integration, and verification cost. Explicit user and
+host limits still apply; idle slots alone are not a reason to create agents.
 
 ## Differences between tools
 

@@ -16,7 +16,7 @@ new evidence changes the task. This is a decision policy, not a billing limiter.
 ## Discover the actual controls
 
 Load [configuration](references/configuration.md) before routing or `status`.
-It defines model weights, routing mode, enable switches and Spark quota safeguards.
+It defines model weights, routing mode and the enable switch.
 If the policy is disabled, report that when asked and stop applying its routing
 rules; do not change the host's ordinary behavior.
 
@@ -95,7 +95,7 @@ the result can be checked. Input length and job title alone do not decide depth.
 | Clear rules, direct extraction, deterministic acceptance check | Lowest supported depth adequate for the check |
 | Several dependent steps, ordinary diagnosis or implementation | Intermediate supported depth |
 | Conflicting evidence, subtle interactions, consequential interpretation | Deeper supported depth and appropriate verification |
-| Exceptionally difficult unresolved reasoning with material benefit from more analysis | Highest useful supported depth, within the task budget |
+| Exceptionally difficult unresolved reasoning with material benefit from more analysis | Highest useful supported depth |
 
 Map that depth to the chosen model's actual supported effort levels. The same
 label need not mean the same work across models. Select both fields per subtask
@@ -107,7 +107,7 @@ for the required depth; do not invent a label or jump to maximum by default.
 
 Use xhigh, max, ultra or other supported levels when evidence justifies them,
 not simply because they exist. Check whether a level also enables automatic
-delegation, which may conflict with the remaining agent budget. Respect an
+delegation, and account for the extra coordination it may create. Respect an
 explicit effort ceiling. If an exact requested level is unsupported, disclose
 the mismatch and choose a supported alternative only if the user's constraint
 allows it; otherwise keep the work local or report the blocker.
@@ -119,7 +119,7 @@ For high-consequence work, separate factual extraction from consequential
 interpretation. The latter needs a capable reviewer and reliable evidence;
 model size or a self-reported confidence score is not validation.
 
-## Adapt within a finite budget
+## Scale delegation by marginal value
 
 Use the configured mode, `economy` by default. It favors the least total work
 likely to pass the acceptance check: adequate lighter models, compact context,
@@ -130,22 +130,27 @@ apply model weights among adequate candidates. None means "always Astra", a
 fixed effort, or a minimum number of children. Conversation preferences override
 configuration; persist them only when requested. Do not change host settings.
 
-Unless the user sets a total, allow at most four child attempts per user task.
-This is a configurable instruction budget, not a hard token or spending cap.
-Choose concurrency each wave from ready independent tasks, actual free host
-slots, remaining attempts and the parent's ability to integrate results. Count
-retries, replacements and routed follow-ups that start another run. Account for
-agents already working on the task; do not evade the budget through nesting,
-other sessions, alternate tools or subprocesses. If the host limit is unknown,
-start with one child and reassess rather than assuming unlimited slots.
+The router imposes no default numerical cap on agents or attempts. Honor any
+limit the user sets and the host's actual concurrency or usage limits. Otherwise
+continue in waves while each proposed child has a distinct useful deliverable and
+its expected benefit exceeds briefing, coordination, integration and verification
+cost. Do not stop merely because a previous count was reached, and do not spawn
+agents merely because slots remain.
+
+Choose each wave from ready independent work, actual free host slots and the
+parent's ability to integrate the results. Account for agents already working on
+the task, avoid duplicate assignments and avoid nesting that only hides repeated
+work. When capacity is unknown, start with a modest wave and reassess after useful
+results arrive.
 
 Check a child's result against acceptance criteria before proceeding. When it
 fails, distinguish missing evidence, inadequate instructions, access failure
-and insufficient reasoning. Repair the actual cause. At most one justified
-retry or escalation per subtask, within the remaining budget; then integrate
-what is usable and finish locally or report the concrete blocker. A reasoning
-failure can justify more effort or a stronger model; it does not require both.
-Avoid retrying models already found unavailable in this conversation.
+and insufficient reasoning. Repair the actual cause. Retry or reassign when a
+changed brief, added evidence, different tool, more effort or stronger model has
+a concrete chance of resolving it. There is no arbitrary one-retry ceiling, but
+repeating the same failed route without new evidence is waste. A reasoning failure
+can justify more effort or a stronger model; it does not require both. Avoid
+retrying models already found unavailable in this conversation.
 
 ## Report what happened
 

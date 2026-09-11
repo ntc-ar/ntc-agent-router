@@ -42,48 +42,13 @@ or high for a bounded puzzle; a capable one may need low for a narrow check.
 Classify the child's actual deliverable, not the size or risk of the entire
 project. Routine evidence gathering for a security review is still routine;
 consequential security judgment may need a different candidate and verification.
-Do not jump from unavailable Spark straight to Astra. Reevaluate the ordinary
-candidate set and weights first, subject to `spark.on_limit` and user constraints.
-
-## NTC preference: Spark for implementation
-
-Prefer `gpt-5.3-codex-spark` for substantial, well-scoped code implementation
-when it passes the [configuration and quota checks](configuration.md), the
-runtime offers it, and it is adequate for the task. Its bundled weight expresses
-this preference; changing weights can put another suitable model first. Consider
-Spark for implementation and iterative code fixes by default; other work follows
-the ordinary candidate guidance above unless the user requests otherwise.
-This helps use a separate allowance where the account exposes one. It is not an
-exclusive model assignment: user choices and actual capabilities take priority.
-The user can disable it with a request such as "no preference for Spark."
-
-Have the parent settle interfaces and acceptance criteria, then give Spark
-coherent implementation chunks with file ownership and explicit checks. It can
-write most of the code across independent chunks; do not restrict it to trivial
-edits merely because a first pass might need corrections. Do not split a tiny
-task to force its use. Keep context-dependent architecture and final integration
-with the parent or another suitable agent.
-
-Choose effort separately for each chunk from supported levels; Spark does not
-always run at low or medium. Require appropriate tests/checks in the brief and
-inspect the resulting diff. A draft may contain errors; the accepted result must
-meet the same quality bar. Correct a local defect directly or permit one targeted
-repair under the shared retry budget. Escalate if failures expose a reasoning
-gap or repeated review/rework eliminates the benefit; do not repeatedly regenerate
-the same code. High-consequence code still needs capable review before use.
-
-Apply the configured reserve to every Spark window, including both five-hour
-and weekly usage when exposed. Reaching either boundary is enough to stop new
-Spark assignments. Follow the configured fallback or stop behavior, including
-when quota is unknown. A separate allowance is not unlimited execution, and
-parent coordination and corrections may still consume the main allowance.
-
-Current model scope: [OpenAI model catalog](https://learn.chatgpt.com/docs/models).
-Plan and usage details: [OpenAI pricing](https://learn.chatgpt.com/docs/pricing).
+If a preferred model is unavailable, reevaluate the remaining candidate set and
+weights before selecting Astra. Use the same adequacy and escalation rules for
+implementation, repairs and reviews; no model has a permanent role.
 
 Native behavior and configuration reference:
 [OpenAI subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents).
 Skill discovery and reload:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills).
 
-Reviewed 2026-09-08. The running tool schema takes precedence over examples.
+Reviewed 2026-09-11. The running tool schema takes precedence over examples.
