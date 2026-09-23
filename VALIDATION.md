@@ -56,7 +56,7 @@ The evaluation found ambiguities in effort inheritance and fallback to the
 parent. The policy was updated so these paths always respect exact user choices
 and limits, even when those constraints prevent completion.
 
-## Weighted routing evaluation — September 8, 2026
+## Weighted routing scenarios — reviewed through September 23, 2026
 
 Real usage showed that the original "smallest adequate model" guidance did not
 consistently prevent flagship selection. It also left ordinary agents open to
@@ -64,10 +64,11 @@ inheriting a flagship parent and maximum effort. The revised policy adds an
 economy default, configurable selection weights, explicit model/effort dispatch
 and a concrete reason for escalation. No host defaults or billing controls change.
 
-An independent instruction-level evaluation applied the revised package to
-fifteen scenarios without performing the simulated tasks or spawning children:
+An independent instruction-level evaluation established the original weighting
+behavior on September 8. The table tracks current expected decisions, including
+cases updated after that evaluation. It is not a record of one benchmark run:
 
-| Scenario | Observed decision |
+| Scenario | Expected decision |
 | --- | --- |
 | Direct schema extraction with Astra/Ultra parent | Luna/low with explicit settings |
 | One-file parser fix with interacting quoting rules and fixtures | Terra/medium |
@@ -79,9 +80,9 @@ fifteen scenarios without performing the simulated tasks or spawning children:
 | Terra fails a cross-module concurrency acceptance check | One targeted escalation to Sol/high |
 | Preferred light model unavailable | Reevaluate the remaining candidates before Astra |
 | Only Astra exposed for requested extraction child | Astra/low; disclose the lack of alternatives |
-| Claude extraction with model selector and effort profiles | Haiku with the low profile and explicit model |
+| Claude extraction when Haiku 4.5 is available | Haiku without an effort profile; this model does not support effort |
 | Boolean used as a model weight | Reject configuration before routing |
-| Unlisted light model exposed with suitable capability metadata | Use its neutral weight; select it over Astra |
+| Unlisted light model exposed with suitable capability metadata | Classify it as light, assign provisional weight 90, and compare it with adequate candidates |
 | No model/effort controls for a requested independent child | Disclose inherited, unverified settings |
 | All adequate exposed candidates have weight zero | Report the constraint without an excluded-parent fallback |
 
@@ -116,11 +117,45 @@ when Codex cannot select child settings, the effective model or effort may be
 inherited. The policy requires reporting that state as unverified rather than
 claiming the requested settings ran.
 
+## Model and runtime review — September 23, 2026
+
+The [OpenAI model catalog](https://learn.chatgpt.com/docs/models) and
+[subagent guidance](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+now list GPT-6 Luna for focused, repeatable work and GPT-6 Sol for more demanding
+coding and agent workflows. The bundled weights
+prefer them over their GPT-5.6 counterparts in the same role when the runtime
+actually exposes them. GPT-5.5 was excluded from automatic routing ahead of its
+announced October 14 retirement. New models receive a provisional weight from
+their documented role instead of a universal neutral weight.
+
+The [Claude model guidance](https://code.claude.com/docs/en/model-config) lists
+Fable for demanding long-running work and Haiku 4.5 without effort controls.
+The Claude adapter applies an effort
+profile only to models that support it and reports model overrides forced by
+`CLAUDE_CODE_SUBAGENT_MODEL_FORCE`. It uses `/tasks` for visible model and effort
+evidence as documented in the [subagent guide](https://code.claude.com/docs/en/sub-agents),
+and distinguishes runtime confirmation from a configured preference.
+
+The local clients were Codex CLI 0.155.0-alpha.16.3 and Claude Code 2.1.275 at
+the start of this review. Claude Code was updated to 2.1.280, which adds Opus
+5.5 support ([release notes](https://github.com/anthropics/claude-code/releases/tag/v2.1.280)).
+The desktop Codex updater reported its production app current;
+model availability still depends on each running tool's exposed controls.
+
+An independent read-only pass requested GPT-6 Luna/high and reviewed eight
+current routing cases. It found no conflicting instruction: a typo stays in the
+parent; separate mechanical changes can proceed in useful waves; a complex
+regression can use GPT-6 Sol and a distinct review; a simple extraction does not
+inherit Astra/Ultra; Claude's unforced default yields to an explicit Haiku
+choice; a forced model is reported as forced; and a new flagship requires a
+documented reason. These are instruction checks, not proof of live model access
+or measured token savings.
+
 ## Other validation limits
 
-Claude Code 2.1.195 was installed without active authentication. Files, locally
-accepted fields, and installation were checked; running the profiles in an
-authenticated Claude Code session remains pending.
+Claude Code 2.1.280 is installed without active claude.ai authentication. Files,
+locally accepted fields, and installation were checked; running the profiles in
+an authenticated Claude Code session remains pending.
 
 Skill discovery alone does not establish automatic selection in every
 conversation. Money and token savings were not measured. Routing

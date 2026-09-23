@@ -49,10 +49,12 @@ depth/checks the task benefits from; it does not bypass these rules.
 
 Use exact model IDs or aliases accepted by the current dispatch tool. Never send
 a display label from the picker as a model ID. Match exact keys; use a documented
-alias mapping only when verified in the runtime. Unlisted exposed models get
-weight 50 and remain candidates based on their descriptions/results. Missing
-models are ignored, not probed. Weights do not establish model availability or
-capability. Do not infer price from model names or generation.
+alias mapping only when verified in the runtime. For an unlisted exposed model,
+classify it from current runtime or official capability guidance before assigning
+a provisional weight: light 90, balanced 80, capable 50, or flagship 10. If its
+role is unclear, do not prefer it over a known adequate candidate without
+evidence. Missing models are ignored, not probed. Weights do not establish model
+availability or capability. Do not infer price from model names or generation.
 
 Merge the table by model key: a project override for Terra preserves user weights
 for other models. Keys must be non-empty model strings and values finite numbers

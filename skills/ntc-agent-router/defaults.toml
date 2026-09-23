@@ -2,13 +2,17 @@ enabled = true
 mode = "economy"
 
 # Selection priorities among adequate, available candidates. Not prices or shares.
-# Exact runtime model IDs (or accepted Claude aliases); unlisted models get 50.
+# Exact runtime model IDs (or accepted Claude aliases); classify unlisted models.
 [model_weights]
+"gpt-6-luna" = 95
 "gpt-5.6-luna" = 90
 "gpt-5.6-terra" = 80
+"gpt-6-sol" = 70
 "gpt-5.6-sol" = 50
-"gpt-5.5" = 40
+"gpt-5.5" = 0
 "gpt-6-astra" = 10
 haiku = 90
 sonnet = 80
 opus = 10
+fable = 5
+best = 5

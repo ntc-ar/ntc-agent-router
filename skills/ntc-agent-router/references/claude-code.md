@@ -12,10 +12,12 @@ subagents, accepted model values, and installed `ntc-effort-*` profiles.
 Picker, CLI, and frontmatter values do not necessarily fit the Agent schema.
 
 Choose model and reasoning depth using the shared policy. Pass a model only
-through an exposed field accepting that value. If per-call effort is absent,
-select the installed `ntc-effort-<level>` profile with matching frontmatter and
-pass the model independently. These profiles inherit models; roles do not
-determine their level. Use only levels the chosen model supports.
+through an exposed field accepting that value. If per-call effort is absent and
+the chosen model supports effort, select the installed `ntc-effort-<level>`
+profile with matching frontmatter and pass the model independently. These
+profiles inherit models; roles do not determine their level. Haiku 4.5 does not
+support effort, so dispatch it without an effort profile and report that effort
+is not selectable. Use only levels the chosen model supports.
 
 If a control or profile is unavailable, inherit only within the user's explicit
 choices and effort ceiling; otherwise finish locally or report the blocker.
@@ -27,11 +29,15 @@ See [subagents](https://code.claude.com/docs/en/sub-agents#choose-a-model).
 ## Apply efficiency preferences
 
 Apply the shared mode and weights after checking the model's capabilities.
-With exposed, documented Haiku/Sonnet/Opus aliases, consider Haiku for clear,
-bounded work, Sonnet for ordinary implementation and reasoning, and Opus for
-work needing deeper judgment. These are starting points, not fixed roles or
+With exposed, documented Haiku/Sonnet/Opus/Fable aliases, consider Haiku for
+clear, bounded work, Sonnet for ordinary implementation and reasoning, and Opus
+for work needing deeper judgment. These are starting points, not fixed roles or
 effort levels. Use runtime descriptions for other models. A configured alias
 weight does not apply to an unrelated or guessed full model ID.
+Fable is for unusually demanding, long-running work; its lower weight prevents
+routine automatic selection. Claude Code's `best` alias can resolve to Fable,
+so treat it with the same priority. Do not select `opusplan` as a subagent model;
+it is a session workflow mode.
 
 Pass the selected model even when using an `ntc-effort-*` profile: its
 `model: inherit` is a fallback, not an economy setting. Do not copy an Opus
@@ -42,16 +48,19 @@ forced controls; a missing model selector does not authorize a CLI/API workaroun
 
 Inspect relevant non-secret model restrictions and, when present,
 `CLAUDE_CODE_SUBAGENT_MODEL`, `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, and
-`CLAUDE_CODE_EFFORT_LEVEL`. Their precedence varies by version; effort environment
-overrides defeat frontmatter. Preserve them and the parent's settings.
+`CLAUDE_CODE_EFFORT_LEVEL`. In Claude Code 2.1.257 and later, the model order is
+per-invocation choice, agent definition, subagent environment default, then
+parent. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` overrides individual model choices;
+report the forced value rather than claiming the requested model ran. Effort
+frontmatter overrides the session setting, but not `CLAUDE_CODE_EFFORT_LEVEL`
+or a model/organization cap. Preserve these settings and the parent's choices.
 Effort labels are model-specific. See [model configuration](https://code.claude.com/docs/en/model-config).
 
 Distinguish requested, configured, and runtime-confirmed values.
-Prefer the child's transcript metadata when available: `message.model` and
-top-level `effort`. Report absent evidence as `not verified`.
-Do not infer child effort solely from `CLAUDE_EFFORT` or `meta.json`;
-a [reproduced dispatch-path issue](https://github.com/anthropics/claude-code/issues/81677)
-documents misleading readings and differences for teammates and `--agent`.
+Use `/tasks` to inspect a running subagent's model and, when displayed, effort.
+Child transcript fields such as `message.model` or top-level `effort` may provide
+additional evidence, but their presence depends on the runtime. Report absent
+evidence as `not verified`; do not infer effort from a saved setting alone.
 Keep effort profiles on ordinary Agent/Task dispatch.
 Omit fields that would turn the subagent into a teammate.
 

@@ -86,6 +86,8 @@ history. Prefer a sufficient brief in fresh context. Reuse an existing agent
 when its relevant context saves more work than a new route would; state that
 tradeoff if it bypasses the preferred model. If selection is unavailable, report
 inherited/unverified settings and avoid unnecessary extra agents.
+If the chosen model does not support effort, report it as not applicable rather
+than naming a level the runtime cannot apply.
 
 Assess uncertainty, interacting constraints, consequence of error and how well
 the result can be checked. Input length and job title alone do not decide depth.

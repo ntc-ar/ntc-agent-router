@@ -32,9 +32,9 @@ the current subagent tool accepts; the task picker can expose a different set.
 
 | Work and acceptance check | Candidates to consider first, when exposed |
 | --- | --- |
-| Clear extraction, classification, mechanical edits, repeatable checks | Luna or another documented light model |
-| Everyday implementation, tool use, file review, diagnosis with a few interacting steps | Terra or another balanced model |
-| Ambiguous changes across components with substantial analysis | Sol or a comparable capable model |
+| Clear extraction, classification, mechanical edits, repeatable checks | GPT-6 Luna, GPT-5.6 Luna, or another documented light model |
+| Everyday implementation, tool use, file review, diagnosis with a few interacting steps | GPT-5.6 Terra or another balanced model |
+| Ambiguous changes across components with substantial analysis | GPT-6 Sol, GPT-5.6 Sol, or a comparable capable model |
 | Hard unresolved reasoning across many constraints, after considering whether parts can be separated | Astra or another flagship, with the concrete reason recorded |
 
 These are adequacy guides, not model/effort pairs. A light model can use medium
@@ -51,4 +51,4 @@ Native behavior and configuration reference:
 Skill discovery and reload:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills).
 
-Reviewed 2026-09-11. The running tool schema takes precedence over examples.
+Reviewed 2026-09-23. The running tool schema takes precedence over examples.

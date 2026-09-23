@@ -81,12 +81,14 @@ considers a balanced model for everyday implementation, and requires a concrete
 reason to use Astra or another flagship. Model and effort are selected separately;
 an Astra/Ultra parent does not make its children Astra/Ultra.
 
-The bundled Codex priorities are Luna **90**, Terra **80**, Sol **50**, GPT-5.5
-**40**, and Astra **10**. Claude aliases start at Haiku **90**, Sonnet **80**,
-and Opus **10**. These are configurable selection weights, not prices, traffic
-percentages, or promised token savings. Higher wins among available, adequate
-candidates; capability requirements still take priority. Unlisted exposed
-models remain candidates with weight 50, using their actual capability metadata.
+The bundled Codex priorities are GPT-6 Luna **95**, GPT-5.6 Luna **90**,
+GPT-5.6 Terra **80**, GPT-6 Sol **70**, GPT-5.6 Sol **50**, and Astra **10**.
+GPT-5.5 has weight **0** ahead of its announced retirement. Claude aliases
+start at Haiku **90**, Sonnet **80**, Opus **10**, and Fable/Best **5**. These are
+selection preferences, not prices, traffic percentages, or promised savings.
+Higher wins among available, adequate candidates; capability requirements still
+take priority. The router classifies newly exposed models before assigning a
+provisional weight, so an unlisted flagship cannot win merely by being new.
 
 You can change settings in the conversation:
 
@@ -163,17 +165,18 @@ self-contained assignment. It does not install profiles with fixed models.
 
 **Claude Code:** can select a model per call. For versions that configure effort
 through frontmatter, it includes five effort profiles: `low`, `medium`, `high`,
-`xhigh`, and `max`. The router chooses the profile when delegating and selects
-the model separately. It uses only combinations compatible with the model and
-the running version. Profiles inherit tools and permissions.
+`xhigh`, and `max`. The router chooses a profile only when the selected model
+supports effort; Haiku 4.5 is an example that does not. It selects the model
+separately. Profiles inherit tools and permissions.
 
 The main model and its effort remain as you configured them. Preferences or
 environment variables may override a router request; the skill distinguishes
 what was requested from what the runtime confirmed.
 
-**ChatGPT web:** the skill file can guide decisions if the interface allows it
-to be loaded. It does not install local agents or enable controls that the
-interface does not expose. The local version is verified separately.
+**ChatGPT Work on the web:** supports subagents on eligible accounts. Installing
+this standalone skill locally or linking its GitHub repository does not make it
+available there; web distribution requires a plugin. The interface's actual
+model and delegation controls still determine what the router can request.
 
 ## Verification
 
