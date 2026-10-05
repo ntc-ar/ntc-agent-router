@@ -151,11 +151,34 @@ choice; a forced model is reported as forced; and a new flagship requires a
 documented reason. These are instruction checks, not proof of live model access
 or measured token savings.
 
+## Model refresh — October 5, 2026
+
+The [current OpenAI model guide](https://learn.chatgpt.com/docs/models) and
+[subagent guide](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+recommend GPT-6.1 Sol for demanding work. Its packaged priority is 85, below
+both Luna candidates and above earlier Sol models. The Codex adapter also
+lists it for ordinary implementation when lighter candidates are inadequate.
+The current session's dispatch schema exposes `gpt-6.1-sol`; availability in
+other sessions is not assumed.
+
+An independent read-only review checked the
+[Claude model guide](https://code.claude.com/docs/en/model-config) and
+[subagent model resolution](https://code.claude.com/docs/en/sub-agents).
+The adapter now records the version floors for Sonnet 5.5, Opus 5.5 and Fable
+5.1, alias resolution caveats, and the medium defaults of the two 5.5 models.
+Claude Code was updated from 2.1.280 to 2.1.289 using `claude update`; the local
+Codex CLI was 0.160.0. These version checks do not prove account model access.
+
+All 13 installer tests, skill validation, TOML ordering checks, and the five
+profiles' YAML checks passed. Both installed skill copies matched the source;
+an identical installation preview reported no changes. `claude plugin validate`
+required a plugin manifest and did not validate the standalone agent directory.
+
 ## Other validation limits
 
-Claude Code 2.1.280 is installed without active claude.ai authentication. Files,
-locally accepted fields, and installation were checked; running the profiles in
-an authenticated Claude Code session remains pending.
+The September 23 review had no active claude.ai authentication. No live Claude
+model calls were made in either model refresh; authenticated profile execution
+remains unverified.
 
 Skill discovery alone does not establish automatic selection in every
 conversation. Money and token savings were not measured. Routing

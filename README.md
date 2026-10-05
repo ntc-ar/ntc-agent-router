@@ -82,13 +82,19 @@ reason to use Astra or another flagship. Model and effort are selected separatel
 an Astra/Ultra parent does not make its children Astra/Ultra.
 
 The bundled Codex priorities are GPT-6 Luna **95**, GPT-5.6 Luna **90**,
-GPT-5.6 Terra **80**, GPT-6 Sol **70**, GPT-5.6 Sol **50**, and Astra **10**.
+GPT-6.1 Sol **85**, GPT-5.6 Terra **80**, GPT-6 Sol **70**, GPT-5.6 Sol **50**,
+and Astra **10**.
 GPT-5.5 has weight **0** ahead of its announced retirement. Claude aliases
 start at Haiku **90**, Sonnet **80**, Opus **10**, and Fable/Best **5**. These are
 selection preferences, not prices, traffic percentages, or promised savings.
 Higher wins among available, adequate candidates; capability requirements still
 take priority. The router classifies newly exposed models before assigning a
 provisional weight, so an unlisted flagship cannot win merely by being new.
+
+GPT-6.1 Sol is the preferred Sol candidate for demanding work when the agent
+tool exposes it. Luna remains first for clear, focused work. See the
+[current model guidance](https://learn.chatgpt.com/docs/models); installing the
+skill does not grant access to a model.
 
 You can change settings in the conversation:
 

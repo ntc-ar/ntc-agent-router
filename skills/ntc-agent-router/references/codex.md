@@ -33,8 +33,8 @@ the current subagent tool accepts; the task picker can expose a different set.
 | Work and acceptance check | Candidates to consider first, when exposed |
 | --- | --- |
 | Clear extraction, classification, mechanical edits, repeatable checks | GPT-6 Luna, GPT-5.6 Luna, or another documented light model |
-| Everyday implementation, tool use, file review, diagnosis with a few interacting steps | GPT-5.6 Terra or another balanced model |
-| Ambiguous changes across components with substantial analysis | GPT-6 Sol, GPT-5.6 Sol, or a comparable capable model |
+| Everyday implementation, tool use, file review, diagnosis with a few interacting steps | GPT-6.1 Sol, GPT-5.6 Terra, or another adequate workhorse |
+| Ambiguous changes across components with substantial analysis | GPT-6.1 Sol, GPT-6 Sol, GPT-5.6 Sol, or a comparable capable model |
 | Hard unresolved reasoning across many constraints, after considering whether parts can be separated | Astra or another flagship, with the concrete reason recorded |
 
 These are adequacy guides, not model/effort pairs. A light model can use medium
@@ -46,9 +46,14 @@ If a preferred model is unavailable, reevaluate the remaining candidate set and
 weights before selecting Astra. Use the same adequacy and escalation rules for
 implementation, repairs and reviews; no model has a permanent role.
 
+Prefer GPT-6.1 Sol over earlier Sol models for demanding work when exposed.
+Its higher priority does not displace an adequate Luna on clear, focused work.
+Use the chosen model's supported effort levels; `Light` in the desktop picker
+maps to `low` in configuration, and GPT-6 Luna does not support `ultra`.
+
 Native behavior and configuration reference:
 [OpenAI subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents).
 Skill discovery and reload:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills).
 
-Reviewed 2026-09-23. The running tool schema takes precedence over examples.
+Reviewed 2026-10-05. The running tool schema takes precedence over examples.

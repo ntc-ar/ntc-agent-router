@@ -39,6 +39,14 @@ routine automatic selection. Claude Code's `best` alias can resolve to Fable,
 so treat it with the same priority. Do not select `opusplan` as a subagent model;
 it is a session workflow mode.
 
+On the Anthropic API, current aliases resolve to Sonnet 5.5 (Claude Code
+2.1.284+), Opus 5.5 (2.1.280+) and Fable 5.1 (2.1.257+). Provider pins,
+allowlists and same-family parent inheritance can resolve an alias differently.
+Confirm the effective model; use a verified, accepted full ID when an exact
+generation is required. An alias alone is not proof of the latest version.
+Sonnet 5.5 and Opus 5.5 default to medium effort. Reassess effort on upgrade
+rather than carrying an older model's high setting into every assignment.
+
 Pass the selected model even when using an `ntc-effort-*` profile: its
 `model: inherit` is a fallback, not an economy setting. Do not copy an Opus
 parent or maximum effort into routine work by omission. Explain unavailable or
@@ -48,7 +56,7 @@ forced controls; a missing model selector does not authorize a CLI/API workaroun
 
 Inspect relevant non-secret model restrictions and, when present,
 `CLAUDE_CODE_SUBAGENT_MODEL`, `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, and
-`CLAUDE_CODE_EFFORT_LEVEL`. In Claude Code 2.1.257 and later, the model order is
+`CLAUDE_CODE_EFFORT_LEVEL`. In Claude Code 2.1.251 and later, the model order is
 per-invocation choice, agent definition, subagent environment default, then
 parent. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` overrides individual model choices;
 report the forced value rather than claiming the requested model ran. Effort
@@ -66,3 +74,5 @@ Omit fields that would turn the subagent into a teammate.
 
 Without selectable models, delegate for independence. Without agents, work
 in the parent. Do not substitute another CLI session or API bridge.
+
+Reviewed 2026-10-05. The running tool schema takes precedence over examples.
