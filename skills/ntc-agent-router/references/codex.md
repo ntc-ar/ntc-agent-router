@@ -4,19 +4,29 @@ Use the native subagent tool exposed in this session. Some hosts accept model
 and reasoning effort per spawn; others expose configured agent types. Inspect
 the actual schema rather than copying arguments from another Codex surface.
 
-When both fields exist, select the model and its supported effort for each
-assignment. If context inheritance prevents overrides, choose a supported
-fresh-context invocation with a self-contained brief. Do not discard essential
-context merely to select a smaller model.
+When both fields exist, select the model for each assignment and apply the
+effort policy. Under `inherit`, the default, pass the parent session's effort,
+capped at the lower of any user ceiling and the highest level the child model
+supports, and report a cap. If the
+session's level is not exposed, omit the field only when the runtime is known to
+inherit it; otherwise report the effort as unverified. Under `per-task`, select
+a supported effort for each assignment. If context inheritance prevents
+overrides, choose a supported fresh-context invocation with a self-contained
+brief. Do not discard essential context merely to select a smaller model.
 
 In hosts with `fork_turns`, a full-history fork may reject model/effort overrides.
 Use `fork_turns: "none"` with sufficient inputs, or a supported partial fork,
-and set both fields. Do not omit them just to retain a full-history fork. A
-parent selected as Astra/Ultra does not ask for Astra/Ultra children.
+and set both the model and the effort: under `inherit`, the session's level
+capped as above; under `per-task`, the selected level. Do not omit them just to
+retain a full-history fork: under `inherit` a full fork keeps the session's
+effort but also its model, so it cannot honor the model choice. An Astra parent
+does not ask for Astra children; under `per-task`, an Ultra parent does not ask
+for Ultra children either.
 
 Custom TOML agents and `[agents]` defaults can affect effective settings. Read
 only relevant non-secret fields when needed. A configured model with omitted
 effort may use its own default; an unconfigured child can inherit the parent.
+Under `inherit`, pass the session's level explicitly to such an agent.
 Do not label an omitted effort as automatically cheap. An explicit user model
 or effort preference takes precedence over the routing heuristic.
 
@@ -37,8 +47,9 @@ the current subagent tool accepts; the task picker can expose a different set.
 | Ambiguous changes across components with substantial analysis | GPT-6.1 Sol, GPT-6 Sol, GPT-5.6 Sol, or a comparable capable model |
 | Hard unresolved reasoning across many constraints, after considering whether parts can be separated | Astra or another flagship, with the concrete reason recorded |
 
-These are adequacy guides, not model/effort pairs. A light model can use medium
-or high for a bounded puzzle; a capable one may need low for a narrow check.
+These are adequacy guides, not model/effort pairs. Under `per-task`, a light
+model can use medium or high for a bounded puzzle; a capable one may need low
+for a narrow check.
 Classify the child's actual deliverable, not the size or risk of the entire
 project. Routine evidence gathering for a security review is still routine;
 consequential security judgment may need a different candidate and verification.
@@ -56,4 +67,4 @@ Native behavior and configuration reference:
 Skill discovery and reload:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills).
 
-Reviewed 2026-10-05. The running tool schema takes precedence over examples.
+Reviewed 2026-10-08. The running tool schema takes precedence over examples.

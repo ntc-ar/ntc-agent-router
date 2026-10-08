@@ -2,21 +2,23 @@
 name: ntc-agent-router
 description: >-
   Choose whether to delegate independent work, then select available models
-  and reasoning effort using configurable efficiency preferences. Use before
-  spawning or reassigning subagents, for delegation planning, or to balance
-  quality, time and usage in Codex or Claude Code. A trivial task needs no agent.
+  and apply the configured effort policy using efficiency preferences. Use
+  before spawning or reassigning subagents, for delegation planning, or to
+  balance quality, time and usage in Codex or Claude Code. A trivial task needs
+  no agent.
 ---
 
 # NTC Agent Router
 
 Keep tightly coupled work in the parent. Delegate useful independent work with
-the smallest adequate combination of model, effort and context. Reassess when
-new evidence changes the task. This is a decision policy, not a billing limiter.
+the smallest adequate model and context; effort follows the configured policy.
+Reassess when new evidence changes the task. This is a decision policy, not a
+billing limiter.
 
 ## Discover the actual controls
 
 Load [configuration](references/configuration.md) before routing or `status`.
-It defines model weights, routing mode and the enable switch.
+It defines model weights, routing mode, the effort policy and the enable switch.
 If the policy is disabled, report that when asked and stop applying its routing
 rules; do not change the host's ordinary behavior.
 
@@ -57,12 +59,12 @@ return format. Include dependencies and uncertainties that affect correctness.
 Use a fresh context when supported and the brief is sufficient. Children return
 evidence, changes, checks and blockers; they do not redelegate by default.
 
-## Select model and effort independently
+## Select the model, then apply the effort policy
 
 Honor explicit user choices and the host's allowlist. Grade the subtask before
 choosing a model: required tools/context, ambiguity, interacting constraints and
-an acceptance check. The parent model, its effort and the project's importance
-do not establish the child's requirements. Keep the parent settings unchanged.
+an acceptance check. The parent model and the project's importance do not
+establish the child's model requirements. Keep the parent settings unchanged.
 
 Use the adapter's capability guidance and [model weights](references/configuration.md#model-weights)
 to compare suitable candidates. Start with the highest-weight adequate model,
@@ -80,14 +82,52 @@ that reason. Split routine extraction or implementation from difficult judgment
 where useful. Explicit user model requests take precedence, including a request
 to use a flagship. Weights express preferences, not prices or measured savings.
 
-Set both model and effort through the actual controls when available. Do not
-inherit an Astra/Ultra parent merely by omitting fields or forking its complete
-history. Prefer a sufficient brief in fresh context. Reuse an existing agent
-when its relevant context saves more work than a new route would; state that
-tradeoff if it bypasses the preferred model. If selection is unavailable, report
-inherited/unverified settings and avoid unnecessary extra agents.
-If the chosen model does not support effort, report it as not applicable rather
-than naming a level the runtime cannot apply.
+Set the model through the actual controls when available. Do not inherit a
+flagship parent model (Astra, Opus, Fable) merely by omitting the model field or
+forking its complete history. Prefer a sufficient brief in fresh context. Reuse
+an existing agent when its relevant context saves more work than a new route
+would; state that tradeoff if it bypasses the preferred model. If model
+selection is unavailable, report inherited/unverified settings and avoid
+unnecessary extra agents.
+
+For high-consequence work, separate factual extraction from consequential
+interpretation. The latter needs a capable reviewer and reliable evidence;
+model size or a self-reported confidence score is not validation.
+
+### Effort policy
+
+Apply the configured [effort policy](references/configuration.md#effort-policy).
+Under `inherit`, the default, each child keeps the parent session's reasoning
+effort. Do not pick a level per subtask or justify the inherited one; keep it
+with the adapter's method and report the effort as inherited. If the child model
+does not support that level, use the highest level it supports below it (its
+lowest level if none is below) and report "inherited, capped at <level>". If the
+model has no effort control, report effort as not applicable. A missing effort
+control is not a limitation under this policy.
+
+An agent type or subagent definition can set its own effort. Under `inherit`,
+pass the session's level explicitly when the dispatch accepts it; otherwise
+prefer an equally suitable agent without its own effort, or report the level
+that type sets. If the inherited level also enables automatic delegation, keep
+it and tell the child not to redelegate.
+
+An explicit user effort choice applies to the assignments it names and overrides
+either policy. A user ceiling caps the inherited or selected level for the
+conversation. Asking to choose effort per case selects `per-task` for the
+conversation. If an exact requested level is unsupported, disclose the mismatch
+and choose a supported alternative only if the user's constraint allows it;
+otherwise keep the work local or report the blocker. All fallbacks, including
+local execution, remain subject to explicit user constraints. If an exact
+setting applies to the whole task, report the blocker instead of doing the work
+under different settings.
+
+### Per-task effort
+
+With `per-task`, set a level for each subtask through the actual controls when
+available; an omitted effort is usually inherited, not the model's default. Do
+not copy an Ultra or maximum parent level into routine work by omission. If the
+chosen model does not support effort, report it as not applicable rather than
+naming a level the runtime cannot apply.
 
 Assess uncertainty, interacting constraints, consequence of error and how well
 the result can be checked. Input length and job title alone do not decide depth.
@@ -100,26 +140,16 @@ the result can be checked. Input length and job title alone do not decide depth.
 | Exceptionally difficult unresolved reasoning with material benefit from more analysis | Highest useful supported depth |
 
 Map that depth to the chosen model's actual supported effort levels. The same
-label need not mean the same work across models. Select both fields per subtask
-when supported; never tie one model permanently to low, medium or high. A strong
-model may need little effort for extraction; a smaller one may need more for a
-bounded puzzle. Higher effort does not repair missing tools, context or access.
-If an intermediate level is absent, choose the lowest supported level adequate
-for the required depth; do not invent a label or jump to maximum by default.
+label need not mean the same work across models. Never tie one model permanently
+to low, medium or high. A strong model may need little effort for extraction; a
+smaller one may need more for a bounded puzzle. Higher effort does not repair
+missing tools, context or access. If an intermediate level is absent, choose the
+lowest supported level adequate for the required depth; do not invent a label
+or jump to maximum by default.
 
 Use xhigh, max, ultra or other supported levels when evidence justifies them,
 not simply because they exist. Check whether a level also enables automatic
-delegation, and account for the extra coordination it may create. Respect an
-explicit effort ceiling. If an exact requested level is unsupported, disclose
-the mismatch and choose a supported alternative only if the user's constraint
-allows it; otherwise keep the work local or report the blocker.
-All fallbacks, including local execution, remain subject to explicit user
-constraints. If an exact setting applies to the whole task, report the blocker
-instead of doing the work under different settings.
-
-For high-consequence work, separate factual extraction from consequential
-interpretation. The latter needs a capable reviewer and reliable evidence;
-model size or a self-reported confidence score is not validation.
+delegation, and account for the extra coordination it may create.
 
 ## Scale delegation by marginal value
 
@@ -128,8 +158,8 @@ likely to pass the acceptance check: adequate lighter models, compact context,
 reused evidence and targeted verification. `balanced` (also `auto`) gives more
 weight to avoiding likely rework and delay; `quality` permits deeper analysis or
 a useful independent review when it materially improves the result. All modes
-apply model weights among adequate candidates. None means "always Astra", a
-fixed effort, or a minimum number of children. Conversation preferences override
+apply model weights among adequate candidates. None means "always Astra" or a
+minimum number of children. Conversation preferences override
 configuration; persist them only when requested. Do not change host settings.
 
 The router imposes no default numerical cap on agents or attempts. Honor any
@@ -148,19 +178,22 @@ results arrive.
 Check a child's result against acceptance criteria before proceeding. When it
 fails, distinguish missing evidence, inadequate instructions, access failure
 and insufficient reasoning. Repair the actual cause. Retry or reassign when a
-changed brief, added evidence, different tool, more effort or stronger model has
-a concrete chance of resolving it. There is no arbitrary one-retry ceiling, but
-repeating the same failed route without new evidence is waste. A reasoning failure
-can justify more effort or a stronger model; it does not require both. Avoid
-retrying models already found unavailable in this conversation.
+changed brief, added evidence, different tool or stronger model has a concrete
+chance of resolving it. There is no arbitrary one-retry ceiling, but repeating
+the same failed route without new evidence is waste. A reasoning failure can
+justify a stronger model; under `per-task` it can justify more effort instead,
+without requiring both. Under `inherit`, raise a child's effort only when the
+user asks. Avoid retrying models already found unavailable in this conversation.
 
 ## Report what happened
 
-For each delegation wave, state the assignment, chosen model/effort and a short
-task-level reason. When choosing a lower-weight model, say what ruled out the
-preferred candidate; include the concrete escalation reason for a flagship or
-maximum effort. For example: "Schema inventory -> Luna/low: direct extraction;
-parser fix -> Terra/medium: interacting branches with fixture checks." Report
+For each delegation wave, state the assignment, chosen model and effort, and a
+short task-level reason. When choosing a lower-weight model, say what ruled out
+the preferred candidate; include the concrete escalation reason for a flagship,
+or under `per-task` for maximum effort. With inherited effort, for example:
+"Schema inventory -> Luna, inherited effort: direct extraction; parser fix ->
+Terra, inherited effort: interacting branches with fixture checks." With
+`per-task`: "Schema inventory -> Luna/low; parser fix -> Terra/medium." Report
 which model/effort actually ran when exposed, plus any fallback and its cause.
 Keep this in the conversation; do not add telemetry files or services by default.
 Verify critical findings without duplicating all work.
@@ -171,6 +204,7 @@ configuration change. Do not claim savings without a measured comparable run.
 
 Keep the user's permissions, authentication and billing method. A missing
 control is not a reason to add an API bridge, rewrite profiles during a task,
-or change the parent session's settings. With no model/effort control, delegate
-only for independence and report the inherited or unverified settings. With no
+or change the parent session's settings. With no model control (or, under
+`per-task`, no effort control), delegate only for independence and report the
+inherited or unverified settings. With no
 applicable native agent tool, complete the work in the parent.

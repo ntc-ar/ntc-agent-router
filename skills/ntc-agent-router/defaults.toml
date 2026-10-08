@@ -1,5 +1,6 @@
 enabled = true
 mode = "economy"
+effort = "inherit"
 
 # Selection priorities among adequate, available candidates. Not prices or shares.
 # Exact runtime model IDs (or accepted Claude aliases); classify unlisted models.

@@ -9,10 +9,12 @@ distinction between requested and confirmed models were useful. Routing was
 limited by a small fixed set of model/effort combinations, read-only agents,
 and support for OpenAI only.
 
-This version keeps capability checks and selects settings per subtask. Agents
-can implement changes within a defined scope. Claude Code uses effort profiles
-that allow independent model selection. Delegation continues according to the
-expected value of the next distinct assignment instead of a default attempt cap.
+This version keeps capability checks and selects the model per subtask, and
+the effort too under `per-task`. Agents can implement changes within a defined
+scope. Claude Code sets effort per call when the agent tool allows it and
+otherwise uses effort profiles; the model is selected independently. Delegation
+continues according to the expected value of the next distinct assignment
+instead of a default attempt cap.
 
 ## Completed checks
 
@@ -43,11 +45,12 @@ execution checks above. This was not a benchmark.
 | --- | --- |
 | Exact one-word replacement | Complete in the parent without spawning agents |
 | Two independent modules | Delegate one with file ownership and work on the other |
-| Model supports low/high but not medium | Select a supported level adequate for the task |
+| Per-task effort, model supports low/high but not medium | Select a supported level adequate for the task |
 | Essential evidence is inaccessible | Identify the blocker; more effort does not grant access |
 | Exact model and effort requested, combination unsupported | Report the blocker without substituting settings |
 | Explicit two-agent limit, one completed and one failed | Finish locally within the user's constraints |
-| Claude has no per-call effort control | Select a compatible profile without inventing parameters |
+| Per-task effort, Claude has no per-call effort control | Select a compatible profile without inventing parameters |
+| Per-task effort and Claude exposes per-call effort | Pass the level per call; no profile is needed |
 | Environment forces the model | Distinguish the request from effective configuration |
 | Four useful agents completed and a distinct regression check remains | Start another adequate agent; count alone is not a stop condition |
 | Slots remain but proposed work duplicates completed review | Do not delegate |
@@ -81,6 +84,7 @@ cases updated after that evaluation. It is not a record of one benchmark run:
 | Preferred light model unavailable | Reevaluate the remaining candidates before Astra |
 | Only Astra exposed for requested extraction child | Astra/low; disclose the lack of alternatives |
 | Claude extraction when Haiku 4.5 is available | Haiku without an effort profile; this model does not support effort |
+| Per-task effort, Claude extraction when `haiku` resolves to Haiku 5.5 | Haiku with an explicit low effort; omitting it inherits the parent's level |
 | Boolean used as a model weight | Reject configuration before routing |
 | Unlisted light model exposed with suitable capability metadata | Classify it as light, assign provisional weight 90, and compare it with adequate candidates |
 | No model/effort controls for a requested independent child | Disclose inherited, unverified settings |
@@ -183,3 +187,62 @@ remains unverified.
 Skill discovery alone does not establish automatic selection in every
 conversation. Money and token savings were not measured. Routing
 quality should continue to be assessed through real work and result checks.
+
+## Live Claude Code check — October 8, 2026
+
+Earlier reviews could not dispatch agents from Claude Code. The desktop app ran
+Claude Code 2.1.293; the `claude` command on PATH was 2.1.289 and was then
+updated to 2.1.295. Five minimal subagents covering the four aliases (Haiku
+twice) were dispatched through the Workflow tool from the desktop session, and
+their transcripts recorded the model and effort that actually ran:
+
+| Request | Model that ran | Effort that ran |
+| --- | --- | --- |
+| `haiku`, no effort | `claude-haiku-5-5` | xhigh, inherited from the parent |
+| `haiku`, low | `claude-haiku-5-5` | low |
+| `sonnet`, low | `claude-sonnet-5-5` | low |
+| `opus`, low | `claude-opus-5-5` | low |
+| `fable`, low | `claude-fable-5-1` | low |
+
+The [model guide](https://code.claude.com/docs/en/model-config) lists Haiku 5.5
+with effort from low to max, a medium default and a 2.1.293 minimum. The
+[subagent guide](https://code.claude.com/docs/en/sub-agents) adds a per-call
+effort parameter from 2.1.292. The adapter's rule to dispatch Haiku without
+effort assumed Haiku 4.5; on 2.1.293 it let a routine Haiku child run at the
+parent's xhigh. Under the default `inherit` policy described below, the adapter
+passes no effort, so the child runs at the parent's level. Under `per-task` it
+passes an explicit effort whenever the model supports one; Haiku 4.5, which has
+no effort control, is dispatched without one.
+
+Sonnet, Opus and Fable returned the requested one-line reply. Both Haiku
+children ignored that instruction and did extra work with tools. This is one
+observation, not a quality benchmark, and the weights are unchanged. The check
+shows dispatch for this account and session, not for other providers.
+
+## Inherited effort by default — October 8, 2026
+
+After the live check, effort became a configuration choice. The new `effort`
+key defaults to `"inherit"`: children keep the parent session's reasoning
+effort, and the router decides only whether to delegate and which model to use.
+`"per-task"` keeps the previous per-subtask selection. This default was chosen
+so delegated work runs at the same reasoning effort as the session that
+requested it; model weights are the remaining cost control. Effort levels in
+the earlier tables, such as Luna/low or Terra/medium, describe `per-task`
+behavior; under the default, read them as the model with inherited effort.
+Earlier statements that effort is selected per assignment, raised after a
+failure, or kept from inheriting Ultra or maximum also describe `per-task`.
+
+A second check, on Claude Code 2.1.293, dispatched Haiku through the Agent
+tool with no effort field. The transcript recorded `claude-haiku-5-5` at xhigh,
+the parent session's level, matching the earlier Workflow result. Codex
+documents that a configured agent with an omitted effort may use its own
+default, so its adapter passes the session's level when it is known.
+
+| Scenario | Expected behavior |
+| --- | --- |
+| Default policy, Claude extraction on Haiku 5.5 | Haiku with no effort field or profile; it runs at the session's level |
+| Default policy, Codex child whose model does not support the session's level | The highest level that model supports below it |
+| Default policy, user asks for low on one extraction | Low for that assignment only |
+| Default policy, session at max, user ceiling "up to high" | High, or the highest level below it the model supports |
+| Default policy, child fails for lack of reasoning | Stronger model or better brief; no higher child effort unless the user asks |
+| `per-task` policy | Per-subtask selection, with Claude effort profiles as fallback |
