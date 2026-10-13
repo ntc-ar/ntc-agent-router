@@ -19,6 +19,10 @@ billing limiter.
 
 Load [configuration](references/configuration.md) before routing or `status`.
 It defines model weights, routing mode, the effort policy and the enable switch.
+Settings come from the packaged `defaults.toml`, then
+`~/.config/ntc-agent-router/config.toml`, then `.ntc-agent-router.toml` at the
+repository root. Use these exact paths. The last two are optional, so check that
+a file exists before reading it.
 If the policy is disabled, report that when asked and stop applying its routing
 rules; do not change the host's ordinary behavior.
 
