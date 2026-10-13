@@ -11,7 +11,7 @@ description: >-
 # NTC Agent Router
 
 Keep tightly coupled work in the parent. Delegate useful independent work with
-the smallest adequate model and context; effort follows the configured policy.
+the smallest adequate model and context. Effort follows the configured policy.
 Reassess when new evidence changes the task. This is a decision policy, not a
 billing limiter.
 
@@ -24,12 +24,12 @@ Settings come from the packaged `defaults.toml`, then
 repository root. Use these exact paths. The last two are optional, so check that
 a file exists before reading it.
 If the policy is disabled, report that when asked and stop applying its routing
-rules; do not change the host's ordinary behavior.
+rules. Do not change the host's ordinary behavior.
 
 Inspect the current tool schemas and available agent descriptions. Read only
 the relevant adapter: [Codex](references/codex.md) or
 [Claude Code](references/claude-code.md). In another host, use its exposed
-controls directly; these adapters do not add capabilities to ChatGPT web.
+controls directly. These adapters do not add capabilities to ChatGPT web.
 
 Record separately whether delegation, model selection, effort selection and
 isolated context are available. Configured profiles are candidates until the
@@ -39,7 +39,7 @@ read credentials or probe every model. Refresh after a capability failure.
 
 `status` reports those controls, active preferences and limits without spawning
 agents, changing files or calling models to test access. `off` stops this policy
-for the conversation; it does not disable the host's agent features.
+for the conversation. It does not disable the host's agent features.
 
 ## Decide what can run independently
 
@@ -52,16 +52,16 @@ children run. Do not create a planner whose only output is another delegation.
 
 Choose roles from the work: locating evidence, implementing a bounded change,
 checking a hypothesis, or reviewing a consequential result. Reuse a suitable
-available agent; do not require a permanent roster or a model named after a role.
-Implementation children may edit within the user's authorized scope. Assign
-disjoint file ownership or an available isolated worktree. Sequence overlapping
-edits. Read-only briefs also forbid connector writes; a local sandbox alone
-does not enforce that boundary.
+available agent. Do not require a permanent roster or a model named after a
+role. Implementation children may edit within the user's authorized scope.
+Assign disjoint file ownership or an available isolated worktree. Sequence
+overlapping edits. Read-only briefs also forbid connector writes. A local
+sandbox alone does not enforce that boundary.
 
 Set each brief's goal, relevant inputs, allowed scope, acceptance check and
 return format. Include dependencies and uncertainties that affect correctness.
 Use a fresh context when supported and the brief is sufficient. Children return
-evidence, changes, checks and blockers; they do not redelegate by default.
+evidence, changes, checks and blockers. They do not redelegate by default.
 
 ## Select the model, then apply the effort policy
 
@@ -73,10 +73,10 @@ establish the child's model requirements. Keep the parent settings unchanged.
 Use the adapter's capability guidance and [model weights](references/configuration.md#model-weights)
 to compare suitable candidates. Start with the highest-weight adequate model,
 not the strongest available one. For clear, verifiable work, a suitable light
-model is the first attempt; hypothetical mistakes alone do not rule it out.
+model is the first attempt. Hypothetical mistakes alone do not rule it out.
 For ordinary implementation with several interacting steps, consider a balanced
 model before a flagship. Use a stronger model directly when the task requires
-it; do not burn a token trial on a candidate already known to be inadequate.
+it. Do not burn a token trial on a candidate already known to be inadequate.
 
 Astra or another flagship needs a concrete reason: unresolved interacting
 constraints beyond the lighter candidates, consequential judgment that cannot
@@ -90,19 +90,19 @@ Set the model through the actual controls when available. Do not inherit a
 flagship parent model (Astra, Opus, Fable) merely by omitting the model field or
 forking its complete history. Prefer a sufficient brief in fresh context. Reuse
 an existing agent when its relevant context saves more work than a new route
-would; state that tradeoff if it bypasses the preferred model. If model
+would. State that tradeoff if it bypasses the preferred model. If model
 selection is unavailable, report inherited/unverified settings and avoid
 unnecessary extra agents.
 
 For high-consequence work, separate factual extraction from consequential
-interpretation. The latter needs a capable reviewer and reliable evidence;
-model size or a self-reported confidence score is not validation.
+interpretation. The latter needs a capable reviewer and reliable evidence.
+Model size or a self-reported confidence score is not validation.
 
 ### Effort policy
 
 Apply the configured [effort policy](references/configuration.md#effort-policy).
 Under `inherit`, the default, each child keeps the parent session's reasoning
-effort. Do not pick a level per subtask or justify the inherited one; keep it
+effort. Do not pick a level per subtask or justify the inherited one. Keep it
 with the adapter's method and report the effort as inherited. If the child model
 does not support that level, use the highest level it supports below it (its
 lowest level if none is below) and report "inherited, capped at <level>". If the
@@ -110,7 +110,7 @@ model has no effort control, report effort as not applicable. A missing effort
 control is not a limitation under this policy.
 
 An agent type or subagent definition can set its own effort. Under `inherit`,
-pass the session's level explicitly when the dispatch accepts it; otherwise
+pass the session's level explicitly when the dispatch accepts it. Otherwise
 prefer an equally suitable agent without its own effort, or report the level
 that type sets. If the inherited level also enables automatic delegation, keep
 it and tell the child not to redelegate.
@@ -119,8 +119,8 @@ An explicit user effort choice applies to the assignments it names and overrides
 either policy. A user ceiling caps the inherited or selected level for the
 conversation. Asking to choose effort per case selects `per-task` for the
 conversation. If an exact requested level is unsupported, disclose the mismatch
-and choose a supported alternative only if the user's constraint allows it;
-otherwise keep the work local or report the blocker. All fallbacks, including
+and choose a supported alternative only if the user's constraint allows it.
+Otherwise keep the work local or report the blocker. All fallbacks, including
 local execution, remain subject to explicit user constraints. If an exact
 setting applies to the whole task, report the blocker instead of doing the work
 under different settings.
@@ -128,7 +128,7 @@ under different settings.
 ### Per-task effort
 
 With `per-task`, set a level for each subtask through the actual controls when
-available; an omitted effort is usually inherited, not the model's default. Do
+available. An omitted effort is usually inherited, not the model's default. Do
 not copy an Ultra or maximum parent level into routine work by omission. If the
 chosen model does not support effort, report it as not applicable rather than
 naming a level the runtime cannot apply.
@@ -145,10 +145,10 @@ the result can be checked. Input length and job title alone do not decide depth.
 
 Map that depth to the chosen model's actual supported effort levels. The same
 label need not mean the same work across models. Never tie one model permanently
-to low, medium or high. A strong model may need little effort for extraction; a
-smaller one may need more for a bounded puzzle. Higher effort does not repair
+to low, medium or high. A strong model may need little effort for extraction.
+A smaller one may need more for a bounded puzzle. Higher effort does not repair
 missing tools, context or access. If an intermediate level is absent, choose the
-lowest supported level adequate for the required depth; do not invent a label
+lowest supported level adequate for the required depth. Do not invent a label
 or jump to maximum by default.
 
 Use xhigh, max, ultra or other supported levels when evidence justifies them,
@@ -160,11 +160,11 @@ delegation, and account for the extra coordination it may create.
 Use the configured mode, `economy` by default. It favors the least total work
 likely to pass the acceptance check: adequate lighter models, compact context,
 reused evidence and targeted verification. `balanced` (also `auto`) gives more
-weight to avoiding likely rework and delay; `quality` permits deeper analysis or
+weight to avoiding likely rework and delay. `quality` permits deeper analysis or
 a useful independent review when it materially improves the result. All modes
 apply model weights among adequate candidates. None means "always Astra" or a
 minimum number of children. Conversation preferences override
-configuration; persist them only when requested. Do not change host settings.
+configuration. Persist them only when requested. Do not change host settings.
 
 The router imposes no default numerical cap on agents or attempts. Honor any
 limit the user sets and the host's actual concurrency or usage limits. Otherwise
@@ -185,7 +185,7 @@ and insufficient reasoning. Repair the actual cause. Retry or reassign when a
 changed brief, added evidence, different tool or stronger model has a concrete
 chance of resolving it. There is no arbitrary one-retry ceiling, but repeating
 the same failed route without new evidence is waste. A reasoning failure can
-justify a stronger model; under `per-task` it can justify more effort instead,
+justify a stronger model. Under `per-task` it can justify more effort instead,
 without requiring both. Under `inherit`, raise a child's effort only when the
 user asks. Avoid retrying models already found unavailable in this conversation.
 
@@ -193,14 +193,14 @@ user asks. Avoid retrying models already found unavailable in this conversation.
 
 For each delegation wave, state the assignment, chosen model and effort, and a
 short task-level reason. When choosing a lower-weight model, say what ruled out
-the preferred candidate; include the concrete escalation reason for a flagship,
+the preferred candidate. Include the concrete escalation reason for a flagship,
 or under `per-task` for maximum effort. With inherited effort, for example:
-"Schema inventory -> Luna, inherited effort: direct extraction; parser fix ->
+"Schema inventory to Luna, inherited effort: direct extraction. Parser fix to
 Terra, inherited effort: interacting branches with fixture checks." With
-`per-task`: "Schema inventory -> Luna/low; parser fix -> Terra/medium." Report
+`per-task`: "Schema inventory to Luna/low. Parser fix to Terra/medium." Report
 which model/effort actually ran when exposed, plus any fallback and its cause.
-Keep this in the conversation; do not add telemetry files or services by default.
-Verify critical findings without duplicating all work.
+Keep this in the conversation. Do not add telemetry files or services by
+default. Verify critical findings without duplicating all work.
 Report requested settings separately from configured or runtime-confirmed
 settings. Mark the effective model or effort unverified when the runtime does
 not expose it. Writing a model name or "think harder" in a prompt is not a

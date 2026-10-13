@@ -3,7 +3,7 @@ mode = "economy"
 effort = "inherit"
 
 # Selection priorities among adequate, available candidates. Not prices or shares.
-# Exact runtime model IDs (or accepted Claude aliases); classify unlisted models.
+# Exact runtime model IDs or accepted Claude aliases. Classify unlisted models.
 [model_weights]
 "gpt-6-luna" = 95
 "gpt-5.6-luna" = 90

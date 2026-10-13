@@ -32,7 +32,7 @@ single tool, choose `--target codex` or `--target claude`.
 The installer respects `CODEX_HOME` and `CLAUDE_CONFIG_DIR`. `--home PATH` lets
 you test with another user directory and ignores those variables. If your
 Codex distribution discovers skills in `~/.agents/skills`, you can copy the
-`skills/ntc-agent-router` folder there; avoid keeping two copies with the same
+`skills/ntc-agent-router` folder there. Avoid keeping two copies with the same
 name.
 
 A reinstallation preserves a copy of replaced files in
@@ -42,7 +42,7 @@ tries to restore the previous destinations and keeps the backups. It does not
 modify configuration, authentication, or general instructions.
 
 Open a new session after installing, especially in Claude Code, to load the
-profiles. Codex may detect changes automatically; if the skill does not appear
+profiles. Codex may detect changes automatically. If the skill does not appear
 in the selector, restart the application.
 
 ## Usage
@@ -96,13 +96,13 @@ and Astra **10**.
 GPT-5.5 has weight **0** ahead of its announced retirement. Claude aliases
 start at Haiku **90**, Sonnet **80**, Opus **10**, and Fable/Best **5**. These are
 selection preferences, not prices, traffic percentages, or promised savings.
-Higher wins among available, adequate candidates; capability requirements still
+Higher wins among available, adequate candidates. Capability requirements still
 take priority. The router classifies newly exposed models before assigning a
 provisional weight, so an unlisted flagship cannot win merely by being new.
 
 GPT-6.1 Sol is the preferred Sol candidate for demanding work when the agent
 tool exposes it. Luna remains first for clear, focused work. See the
-[current model guidance](https://learn.chatgpt.com/docs/models); installing the
+[current model guidance](https://learn.chatgpt.com/docs/models). Installing the
 skill does not grant access to a model.
 
 You can change settings in the conversation:
@@ -122,7 +122,7 @@ enabled = true
 mode = "economy" # "balanced" (or "auto") and "quality" are also available
 effort = "inherit" # or "per-task"
 
-# Optional overrides; omitted model weights keep their packaged/user values.
+# Optional overrides. Omitted model weights keep their packaged/user values.
 [model_weights]
 "gpt-5.6-terra" = 95
 "gpt-6-astra" = 5
@@ -135,7 +135,7 @@ Settings merge by key: packaged defaults, user file, project file, then current
 conversation instructions. Updates leave personal and project settings alone.
 `status` reports the mode, effort policy, effective weights, available controls,
 their sources, and the chosen action. Weight zero excludes a model from
-automatic selection; an explicit request for that model can override the weight.
+automatic selection. An explicit request for that model can override the weight.
 A custom weight only applies to an exact model ID or accepted alias. It does not
 make a picker-only model spawnable.
 
@@ -157,7 +157,7 @@ review. "Reviewer" and "security" are not automatic reasons to use a flagship:
 the router separates routine evidence gathering from consequential judgment.
 
 `economy` favors adequate lighter models, compact context and targeted checks.
-`balanced` (also `auto`) gives more weight to avoiding likely rework and delay;
+`balanced` (also `auto`) gives more weight to avoiding likely rework and delay.
 `quality` allows a deeper or independent review when it improves the result.
 All modes respect weights among suitable candidates. None requires creating
 agents or always using the largest model. A stronger model or more effort is not
@@ -172,7 +172,7 @@ the conversation without adding a background process or collecting telemetry.
 The router has no default numerical cap on agents or attempts. It continues in
 waves while each child has a distinct useful deliverable whose expected value
 exceeds the coordination, integration, and verification cost. Explicit user and
-host limits still apply; idle slots alone are not a reason to create agents.
+host limits still apply. Idle slots alone are not a reason to create agents.
 
 ## Differences between tools
 
@@ -185,19 +185,20 @@ assignment. It does not install profiles with fixed models.
 **Claude Code:** can select a model per call and, from 2.1.292, the effort of
 ordinary (non-fork) subagents. With the default `inherit` policy the router
 passes no effort, and the child runs at the main session's level. With
-`per-task` it sets the level whenever the selected model supports it; when the
-agent tool does not take effort per call, it uses five effort profiles: `low`,
-`medium`, `high`, `xhigh`, and `max`. Haiku 5.5 (the `haiku` alias from 2.1.293
-on the Anthropic API) supports effort; Haiku 4.5 does not. An environment
-override can still change the result. Profiles inherit tools and permissions.
+`per-task` it sets the level whenever the selected model supports it, and when
+the agent tool does not take effort per call, it uses five effort profiles:
+`low`, `medium`, `high`, `xhigh`, and `max`. Haiku 5.5 (the `haiku` alias from
+2.1.293 on the Anthropic API) supports effort, but Haiku 4.5 does not. An
+environment override can still change the result. Profiles inherit tools and
+permissions.
 
 The main model and its effort remain as you configured them. Preferences or
-environment variables may override a router request; the skill distinguishes
+environment variables may override a router request. The skill distinguishes
 what was requested from what the runtime confirmed.
 
 **ChatGPT Work on the web:** supports subagents on eligible accounts. Installing
 this standalone skill locally or linking its GitHub repository does not make it
-available there; web distribution requires a plugin. The interface's actual
+available there. Web distribution requires a plugin. The interface's actual
 model and delegation controls still determine what the router can request.
 
 ## Verification
