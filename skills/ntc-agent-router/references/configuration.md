@@ -78,13 +78,13 @@ candidate without evidence. Missing models are ignored, not probed. Weights do
 not establish model availability or capability. Do not infer price from model
 names or generation.
 
-Merge the table by model key: a project override for Terra preserves user
-weights for other models. Keys must be non-empty model strings and values finite
-numbers in range. Booleans, strings, NaN, infinity, unknown configuration fields
-and malformed tables are invalid. Zero removes a model from automatic selection,
-including known inheritance. If all suitable models have weight zero, report the
-constraint. Do not bypass it through an excluded parent. An explicit request for
-that model overrides its weight for that assignment.
+Merge the table by model key: a project override for GPT-5.6 Terra preserves
+user weights for other models. Keys must be non-empty model strings and values
+finite numbers in range. Booleans, strings, NaN, infinity, unknown configuration
+fields and malformed tables are invalid. Zero removes a model from automatic
+selection, including known inheritance. If all suitable models have weight zero,
+report the constraint. Do not bypass it through an excluded parent. An explicit
+request for that model overrides its weight for that assignment.
 
 Break ties by relevant capability/latency evidence, then the smallest sufficient
 context (and, under `per-task`, effort). Do not default to the parent just
@@ -96,13 +96,14 @@ user/project config without changing the packaged defaults:
 mode = "economy"
 
 [model_weights]
-"gpt-5.6-terra" = 95
+"gpt-5.6-terra" = 98
 "gpt-6-astra" = 5
 ```
 
-This raises Terra above Luna for adequate work and preserves the other weights.
+This raises GPT-5.6 Terra above both Luna models for adequate work and
+preserves the other weights.
 Astra remains available for work that justifies escalation. A higher weight
-alone does not remove that requirement. Requests such as "prefer Terra",
+alone does not remove that requirement. Requests such as "prefer Sol",
 "economy" or "use Astra for this review" override the corresponding preference
 for this conversation. A user choice for the parent alone is not a child-model
 mandate.

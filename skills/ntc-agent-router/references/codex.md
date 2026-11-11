@@ -43,6 +43,8 @@ the current subagent tool accepts. The task picker can expose a different set.
 | Work and acceptance check | Candidates to consider first, when exposed |
 | --- | --- |
 | Clear extraction, classification, mechanical edits, repeatable checks | GPT-6 Luna, GPT-5.6 Luna, or another documented light model |
+| Clear writing | GPT-6.1 Terra or GPT-6 Luna |
+| Visual understanding, computer use | GPT-6.1 Terra. Another model only when its runtime description lists that capability |
 | Everyday implementation, tool use, file review, diagnosis with a few interacting steps | GPT-6.1 Sol, GPT-5.6 Terra, or another adequate workhorse |
 | Ambiguous changes across components with substantial analysis | GPT-6.1 Sol, GPT-6 Sol, GPT-5.6 Sol, or a comparable capable model |
 | Hard unresolved reasoning across many constraints, after considering whether parts can be separated | Astra or another flagship, with the concrete reason recorded |
@@ -58,7 +60,13 @@ weights before selecting Astra. Use the same adequacy and escalation rules for
 implementation, repairs and reviews. No model has a permanent role.
 
 Prefer GPT-6.1 Sol over earlier Sol models for demanding work when exposed.
-Its higher priority does not displace an adequate Luna on clear, focused work.
+At the packaged weights it does not displace an adequate Luna on clear, focused
+work. A user or project weight that ranks it above Luna does.
+GPT-6.1 Terra, from October 26, 2026, needs Codex CLI 0.159.0 or later and is
+not offered in the IDE extension. OpenAI describes it for clear writing, visual
+understanding and computer use, and points to Sol or Astra for in-depth research
+and complex coding. Do not route that work to it by weight alone. GPT-5.5
+left Codex on October 14, 2026.
 Use the chosen model's supported effort levels. `Light` in the desktop picker
 maps to `low` in configuration, and GPT-6 Luna does not support `ultra`.
 
@@ -67,4 +75,4 @@ Native behavior and configuration reference:
 Skill discovery and reload:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills).
 
-Reviewed 2026-10-08. The running tool schema takes precedence over examples.
+Reviewed 2026-11-11. The running tool schema takes precedence over examples.

@@ -84,7 +84,7 @@ cases updated after that evaluation. It is not a record of one benchmark run:
 | Preferred light model unavailable | Reevaluate the remaining candidates before Astra |
 | Only Astra exposed for requested extraction child | Astra/low and disclose the lack of alternatives |
 | Claude extraction when Haiku 4.5 is available | Haiku without an effort profile. This model does not support effort |
-| Per-task effort, Claude extraction when `haiku` resolves to Haiku 5.5 | Haiku with an explicit low effort. Omitting it inherits the parent's level |
+| Per-task effort, Claude extraction when `haiku` resolves to Haiku 5.5 | Haiku with an explicit low effort. Omitting it gave the parent's level before Claude Code 2.1.317 and gives Haiku's own default from then on |
 | Boolean used as a model weight | Reject configuration before routing |
 | Unlisted light model exposed with suitable capability metadata | Classify it as light, assign provisional weight 90, and compare it with adequate candidates |
 | No model/effort controls for a requested independent child | Disclose inherited, unverified settings |
@@ -181,8 +181,8 @@ required a plugin manifest and did not validate the standalone agent directory.
 ## Other validation limits
 
 The September 23 review had no active claude.ai authentication. No live Claude
-model calls were made in either model refresh. Authenticated profile execution
-remains unverified.
+model calls were made in the September 23 and October 5 reviews. Authenticated
+profile execution remains unverified.
 
 Skill discovery alone does not establish automatic selection in every
 conversation. Money and token savings were not measured. Routing
@@ -210,7 +210,8 @@ with effort from low to max, a medium default and a 2.1.293 minimum. The
 effort parameter from 2.1.292. The adapter's rule to dispatch Haiku without
 effort assumed Haiku 4.5. On 2.1.293 it let a routine Haiku child run at the
 parent's xhigh. Under the default `inherit` policy described below, the adapter
-passes no effort, so the child runs at the parent's level. Under `per-task` it
+then passed no effort, and the child ran at the parent's level. The November 11
+refresh replaced that with an explicit level. Under `per-task` it
 passes an explicit effort whenever the model supports one, and Haiku 4.5,
 which has no effort control, is dispatched without one.
 
@@ -240,9 +241,49 @@ default, so its adapter passes the session's level when it is known.
 
 | Scenario | Expected behavior |
 | --- | --- |
-| Default policy, Claude extraction on Haiku 5.5 | Haiku with no effort field or profile. It runs at the session's level |
+| Default policy, Claude extraction on Haiku 5.5 | Before Claude Code 2.1.317, no effort field was needed. From 2.1.317 the session level is passed per call, as in the November 11, 2026 section |
 | Default policy, Codex child whose model does not support the session's level | The highest level that model supports below it |
 | Default policy, user asks for low on one extraction | Low for that assignment only |
 | Default policy, session at max, user ceiling "up to high" | High, or the highest level below it the model supports |
 | Default policy, child fails for lack of reasoning | Stronger model or better brief. No higher child effort unless the user asks |
 | `per-task` policy | Per-subtask selection, with Claude effort profiles as fallback |
+
+## Model refresh, November 11, 2026
+
+Claude Code in the desktop app was 2.1.321 and the CLI on PATH 2.1.300. Codex
+0.167.0 had a model catalog fetched the same day. Four minimal subagents, one
+per alias, were dispatched through the Workflow tool from an Opus 5.5 session at
+xhigh, with no effort field. Their transcripts recorded:
+
+| Alias | Model that ran | Effort that ran |
+| --- | --- | --- |
+| `haiku` | `claude-haiku-5-5` | medium |
+| `sonnet` | `claude-sonnet-5-5` | medium |
+| `opus` | `claude-opus-5-5` | xhigh |
+| `fable` | `claude-fable-5-2` | medium |
+
+The [model guide](https://code.claude.com/docs/en/model-config) confirms that
+`fable` resolves to Fable 5.2 from 2.1.321, except in Claude apps gateway
+sessions, and that `best` now follows `opus`. The Claude Code
+[release notes](https://github.com/anthropics/claude-code/releases) for 2.1.317
+say that subagents on a different model than the main conversation use that
+model's saved effort or its default, not the session effort. That explains the
+medium rows above. The October 8 rows for `haiku` without effort were recorded
+before 2.1.317, which is why they show the parent's xhigh. Under the default
+`inherit` policy the Claude adapter now sets the session level explicitly
+instead of omitting it. 2.1.316 added `CLAUDE_CODE_SUBAGENT_EFFORT`, which
+applies only when nothing else names a level.
+
+The [OpenAI model guide](https://learn.chatgpt.com/docs/models) adds GPT-6.1
+Terra (October 26) for clear writing, visual understanding and computer use,
+with Codex CLI 0.159.0 or later. GPT-5.5 left Codex on October 14 and is gone
+from the local catalog, so its weight was removed. The `best` weight was
+removed too, because the alias now follows `opus`. GPT-6.1 Terra gets the
+balanced weight 80, and the Codex adapter limits it to its documented work.
+
+| Scenario | Expected behavior |
+| --- | --- |
+| Opus parent at xhigh, default policy, Haiku extraction | Haiku with effort xhigh passed per call, reported as inherited |
+| Same, but the session level cannot be found | Haiku without effort, reported as unverified (it runs at its default) |
+| Codex screenshot or UI walkthrough | GPT-6.1 Terra when exposed and adequate |
+| Codex multi-file refactor | GPT-6.1 Sol or another adequate coding model, not GPT-6.1 Terra |

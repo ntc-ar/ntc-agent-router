@@ -102,12 +102,13 @@ Model size or a self-reported confidence score is not validation.
 
 Apply the configured [effort policy](references/configuration.md#effort-policy).
 Under `inherit`, the default, each child keeps the parent session's reasoning
-effort. Do not pick a level per subtask or justify the inherited one. Keep it
+effort. Do not pick a level per subtask or justify the inherited one. Apply it
 with the adapter's method and report the effort as inherited. If the child model
 does not support that level, use the highest level it supports below it (its
 lowest level if none is below) and report "inherited, capped at <level>". If the
-model has no effort control, report effort as not applicable. A missing effort
-control is not a limitation under this policy.
+model has no effort control, report effort as not applicable. Some hosts no
+longer pass the session level to a child on another model, so a missing effort
+control can matter. The adapter says when, and what to report.
 
 An agent type or subagent definition can set its own effort. Under `inherit`,
 pass the session's level explicitly when the dispatch accepts it. Otherwise
@@ -128,8 +129,9 @@ under different settings.
 ### Per-task effort
 
 With `per-task`, set a level for each subtask through the actual controls when
-available. An omitted effort is usually inherited, not the model's default. Do
-not copy an Ultra or maximum parent level into routine work by omission. If the
+available. Do not rely on omission. Depending on the host and model, an omitted
+effort may be inherited or may be the child model's own default. Do not copy an
+Ultra or maximum parent level into routine work by omission. If the
 chosen model does not support effort, report it as not applicable rather than
 naming a level the runtime cannot apply.
 
@@ -196,8 +198,8 @@ short task-level reason. When choosing a lower-weight model, say what ruled out
 the preferred candidate. Include the concrete escalation reason for a flagship,
 or under `per-task` for maximum effort. With inherited effort, for example:
 "Schema inventory to Luna, inherited effort: direct extraction. Parser fix to
-Terra, inherited effort: interacting branches with fixture checks." With
-`per-task`: "Schema inventory to Luna/low. Parser fix to Terra/medium." Report
+Sol, inherited effort: interacting branches with fixture checks." With
+`per-task`: "Schema inventory to Luna/low. Parser fix to Sol/medium." Report
 which model/effort actually ran when exposed, plus any fallback and its cause.
 Keep this in the conversation. Do not add telemetry files or services by
 default. Verify critical findings without duplicating all work.
@@ -208,7 +210,7 @@ configuration change. Do not claim savings without a measured comparable run.
 
 Keep the user's permissions, authentication and billing method. A missing
 control is not a reason to add an API bridge, rewrite profiles during a task,
-or change the parent session's settings. With no model control (or, under
-`per-task`, no effort control), delegate only for independence and report the
-inherited or unverified settings. With no
+or change the parent session's settings. With no model control, or no effort
+control where a level must be set, delegate only for independence and report
+the inherited or unverified settings. With no
 applicable native agent tool, complete the work in the parent.

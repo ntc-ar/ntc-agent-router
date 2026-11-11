@@ -91,11 +91,12 @@ xhigh, or at the highest level below it that their model supports. Set
 instead, for example low for an extraction.
 
 The bundled Codex priorities are GPT-6 Luna **95**, GPT-5.6 Luna **90**,
-GPT-6.1 Sol **85**, GPT-5.6 Terra **80**, GPT-6 Sol **70**, GPT-5.6 Sol **50**,
-and Astra **10**.
-GPT-5.5 has weight **0** ahead of its announced retirement. Claude aliases
-start at Haiku **90**, Sonnet **80**, Opus **10**, and Fable/Best **5**. These are
-selection preferences, not prices, traffic percentages, or promised savings.
+GPT-6.1 Sol **85**, GPT-6.1 Terra **80**, GPT-5.6 Terra **80**, GPT-6 Sol
+**70**, GPT-5.6 Sol **50**, and Astra **10**. GPT-6.1 Terra is meant for
+writing, visual understanding and computer use, not for complex coding. Claude
+aliases start at Haiku **90**, Sonnet **80**, Opus **10**, and Fable **5**.
+These are selection preferences, not prices, traffic percentages, or promised
+savings.
 Higher wins among available, adequate candidates. Capability requirements still
 take priority. The router classifies newly exposed models before assigning a
 provisional weight, so an unlisted flagship cannot win merely by being new.
@@ -124,7 +125,7 @@ effort = "inherit" # or "per-task"
 
 # Optional overrides. Omitted model weights keep their packaged/user values.
 [model_weights]
-"gpt-5.6-terra" = 95
+"gpt-5.6-terra" = 98
 "gpt-6-astra" = 5
 ```
 
@@ -184,13 +185,15 @@ assignment. It does not install profiles with fixed models.
 
 **Claude Code:** can select a model per call and, from 2.1.292, the effort of
 ordinary (non-fork) subagents. With the default `inherit` policy the router
-passes no effort, and the child runs at the main session's level. With
-`per-task` it sets the level whenever the selected model supports it, and when
+passes the main session's level explicitly when it is known, because since
+2.1.317 a child on a different model no longer inherits the level on its own.
+With `per-task` it sets the level whenever the selected model supports it. When
 the agent tool does not take effort per call, it uses five effort profiles:
 `low`, `medium`, `high`, `xhigh`, and `max`. Haiku 5.5 (the `haiku` alias from
-2.1.293 on the Anthropic API) supports effort, but Haiku 4.5 does not. An
-environment override can still change the result. Profiles inherit tools and
-permissions.
+2.1.293 on the Anthropic API) supports effort, but Haiku 4.5 does not. From
+2.1.321 `fable` is Fable 5.2, except in Claude apps gateway sessions, and
+`best` follows `opus`. An environment override can still change the result.
+Profiles inherit tools and permissions.
 
 The main model and its effort remain as you configured them. Preferences or
 environment variables may override a router request. The skill distinguishes
